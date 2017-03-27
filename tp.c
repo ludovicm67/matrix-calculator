@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include <math.h>
 
 typedef float E;
 typedef struct matrix {
@@ -251,8 +252,10 @@ int main() {
     }
     printMatrix(m);
 
+    printf("DET = %f\n", det(m));
 
-    m_determinant(m);
+
+    // m_determinant(m);
 
 
 
