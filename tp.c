@@ -156,6 +156,20 @@ Matrix extraction(Matrix m, unsigned int row, unsigned int column) {
     return r;
 }
 
+double det(Matrix m){
+	if(isSquare(m)){
+		if(m->nb_rows == 0) return 0;
+		if(m->nb_rows == 1) return getElt(m, 0, 0);
+		int i;
+		double somme = 0;
+		for(i = 0; i < m->nb_rows; i++){
+			somme += pow((-1), i)* getElt(m, 0, i)* (det(extraction(m, 0, i)));
+		}
+		return somme;
+	}
+
+}
+
 // float m_determinant(Matrix m) {
 //  int i;
 
