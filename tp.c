@@ -1,0 +1,247 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <assert.h>
+
+typedef float E;
+typedef struct matrix {
+	E * mat;
+	unsigned int nb_rows;
+	unsigned int nb_columns;
+} * Matrix;
+
+// Permet de générer une nouvelle matrice
+Matrix newMatrix(unsigned int nb_rows, unsigned int nb_columns) {
+	Matrix m = malloc(sizeof(Matrix));
+	if (!m) return m;
+	m->nb_rows = nb_rows;
+	m->nb_columns = nb_columns;
+	m->mat = malloc(nb_rows * nb_columns * sizeof(E));
+	return m;
+}
+
+// Permet de récupérer un élément d'une matrice
+E getElt(Matrix m, unsigned int row, unsigned int column) {
+	return m->mat[m->nb_columns*row + column];
+}
+
+// Permet de définir un élément d'une matrice
+void setElt(Matrix m, unsigned int row, unsigned int column, E val) {
+	m->mat[m->nb_columns*row + column] = val;
+}
+
+// Permet de supprimer une matrice
+void deleteMatrix(Matrix m) {
+	free(m->mat);
+	free(m);
+}
+
+// Teste si une matrice est carré
+int isSquare(Matrix m) {
+	return m->nb_rows == m->nb_columns;
+}
+
+// Teste si une matrice est symétrique
+int isSymetric(Matrix m) {
+	unsigned int i, j, n = 0;
+	if (!isSquare(m)) return 0;
+	for (i = 0; i < m->nb_rows; i++) {
+		for (j = 0; j < m->nb_columns; j++) {
+			if (getElt(m, i, j) != getElt(m, j, i)) {
+				return 0;
+			}
+			n++;
+		}
+	}
+	return 1;
+}
+
+// Retourne la transposée de la matrice
+// == pré-condition : m doit être carré
+Matrix transpose(Matrix m) {
+	unsigned int i, j;
+	Matrix r = newMatrix(m->nb_columns, m->nb_rows);
+
+	for (i = 0; i < m->nb_rows; i++) {
+		for (j = 0; j < m->nb_columns; j++) {
+			setElt(r, i, j, getElt(m, j, i));
+		}
+	}
+
+	return r;
+}
+
+// Permet d'afficher une matrice
+void printMatrix(Matrix m) {
+
+	if (!m) {
+		printf("Y'a comme un bug dans la matrice (:\n");
+		return;
+	}
+
+	unsigned int i, j;
+
+	printf("\nAFFICHAGE DE LA MATRICE %dx%d :\n", m->nb_rows, m->nb_columns);
+	for (i = 0; i < m->nb_rows; i++) {
+		for (j = 0; j < m->nb_columns; j++) {
+			printf("\t%.0f", getElt(m, i, j));
+		}
+		printf("\n");
+	}
+	printf("\n");
+
+}
+
+// Additionne deux matrices
+// == pré-condition : m1 et m2 doivent être de même dimension
+Matrix addition(Matrix m1, Matrix m2) {
+	Matrix m = newMatrix(m1->nb_rows, m1->nb_columns);
+	unsigned int i, j;
+
+	for (i = 0; i < m->nb_rows; i++) {
+		for (j = 0; j < m->nb_columns; j++) {
+			setElt(m, i, j, getElt(m1, i, j) + getElt(m2, i, j));
+		}
+	}
+
+	return m;
+}
+
+// Multiplie une matrice par un scalaire
+Matrix mult_scalar(E s, Matrix m) {
+	unsigned int i;
+	for (i = 0; i < m->nb_rows * m->nb_columns; i++) {
+		m->mat[i] *= s;
+	}
+	return m;
+}
+
+// Permet d'effectuer la multiplicaton de deux matrices
+Matrix multiplication(Matrix a, Matrix b) {
+	if (a->nb_columns != b->nb_rows) return NULL;
+
+	Matrix r = newMatrix(a->nb_rows, b->nb_columns);
+	unsigned int i, j, k;
+	E val;
+
+	for (i = 0; i < r->nb_rows; i++) {
+		for (j = 0; j < r->nb_columns; j++) {
+			val = 0;
+			for (k = 0; k < a->nb_columns; k++) {
+				val += getElt(b, k, j) * getElt(a, i, k);
+			}
+			setElt(r, i, j, val);
+		}
+		printf("\n");
+	}
+
+	return r;
+}
+
+Matrix extraction(Matrix m, unsigned int row, unsigned int column) {
+	if (m->nb_rows <= row || m->nb_columns <= column) return m;
+
+	Matrix r = newMatrix(m->nb_rows-1, m->nb_columns-1);
+	unsigned int i, j, x, y;
+
+	for (i = 0; i < r->nb_rows; i++) {
+		for (j = 0; j < r->nb_columns; j++) {
+			x = i;
+			y = j;
+			if (i >= row) x++;
+			if (j >= column) y++;
+			setElt(r, i, j, getElt(m, x, y));
+		}
+	}
+
+	return r;
+}
+
+// float m_determinant(Matrix m) {
+// 	int i;
+
+// 	if (m->nb_columns == 1) return getElt(m, 0, 0);
+// 	if (m->nb_columns == 2)
+// 		return (getElt(m, 0, 0) * getElt(m, 1, 1))
+// 			   - (getElt(m, 0, 1) * getElt(m, 1, 0));
+
+// 	Matrix sous_matrice = newMatrix()
+// 	for (i = 0; i < m->nb_columns; i++) {
+// 		pivot = getElt(m, 0, i);
+// 		printf("%f\n", pivot);
+// 		return m_determinant(extraction(m, 0, i));
+// 	}
+// }
+
+int main() {
+
+	// Matrix m = newMatrix(3, 4);
+	// m->mat[0] = 0;
+	// m->mat[1] = 1;
+	// m->mat[2] = 2;
+	// m->mat[3] = 3;
+	// m->mat[4] = 4;
+	// m->mat[5] = 5;
+	// m->mat[6] = 6;
+
+	// Matrix w = newMatrix(3, 4);
+	// w->mat[0] = 40;
+	// w->mat[1] = 41;
+	// w->mat[2] = 42;
+	// w->mat[3] = 43;
+	// w->mat[4] = 44;
+	// w->mat[5] = 45;
+	// w->mat[6] = 46;
+
+	// setElt(m, 1, 2, 42);
+	// assert(getElt(m, 1, 2) == 42);
+	// printMatrix(m);
+	// printMatrix(w);
+	// Matrix t = addition(m, w);
+	// printMatrix(t);
+
+	// Matrix m2 = newMatrix(3, 3);
+	// for (int i = 0; i < 3 * 3; i++) {
+	// 	m2->mat[i] = i;
+	// }
+
+	// printMatrix(transpose(m2));
+
+
+	// Matrix m1 = newMatrix (2, 2);
+ //    setElt (m1, 0, 0, 2);
+ //    setElt (m1, 0, 1, -3);
+ //    setElt (m1, 1, 0, -1);
+ //    setElt (m1, 1, 1, 2);
+	// printMatrix(m1);
+
+ //    m2 = newMatrix (2, 3);
+ //    setElt (m2, 0, 0, 3);
+ //    setElt (m2, 0, 1, 1);
+ //    setElt (m2, 0, 2, 2);
+ //    setElt (m2, 1, 0, 1);
+ //    setElt (m2, 1, 1, 0);
+ //    setElt (m2, 1, 2, 2);
+	// printMatrix(m2);
+	// printf("==");
+	// printMatrix(multiplication(m1, m2));
+	// printf("===WOLOLO==\n");
+	// printMatrix(extraction(w, 0, 0));
+
+
+	Matrix m = newMatrix(4, 4);
+	int n = 1;
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 4; j++) {
+			setElt(m, i, j, n++);
+		}
+	}
+	printMatrix(m);
+
+
+	m_determinant(m);
+
+
+
+
+	return EXIT_SUCCESS;
+}
