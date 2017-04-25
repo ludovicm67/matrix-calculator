@@ -57,9 +57,14 @@ int isSymetric(Matrix m) {
 }
 
 // Retourne la transposée de la matrice
-// == pré-condition : m doit être carré
 Matrix transpose(Matrix m) {
     unsigned int i, j;
+
+    if(!isSquare(m)) {
+        fprintf(stderr, "La matrice n'est pas carré\n");
+        exit(EXIT_FAILURE);
+    }
+
     Matrix r = newMatrix(m->nb_columns, m->nb_rows);
 
     for(i = 0; i < m->nb_rows; i++) {
@@ -206,6 +211,45 @@ Matrix permuter_ligne(Matrix m, unsigned int i, unsigned int j) {
     return m;
 }
 
+void triangulariser(Matrix m) {
+
+    unsigned int i, j;
+    E k;
+
+    if(!isSquare(m)) {
+        fprintf(stderr, "La matrice n'est pas carré\n");
+        exit(EXIT_FAILURE);
+    }
+
+    for(i = 0; i < m->nb_rows-1; i++) {
+        printf(" ==LIGNE %d\n", i);
+
+        for(j = i+1; j < m->nb_rows; j++) {
+            k = getElt(m, j, 0) / getElt(m, i, 0);
+            printf(" ======= Ligne %d, k = %f\n", j, k);
+        }
+    }
+
+}
+
+E m_determinant(Matrix m) {
+    unsigned int i;
+    E determinant = 1;
+
+    if(!isSquare(m)) {
+        fprintf(stderr, "La matrice n'est pas carré\n");
+        exit(EXIT_FAILURE);
+    }
+
+    for (i = 0; i < m->nb_rows; i++) {
+        determinant *= getElt(m, i, i);
+    }
+
+    return determinant;
+}
+
+
+
 int main() {
 
     // Matrix m = newMatrix(3, 4);
@@ -274,14 +318,11 @@ int main() {
     permuter_ligne(m, 0, 1);
     printMatrix(m);
 
+    triangulariser(m);
+    printMatrix(m);
+
     printf("DET = %f\n", det(m));
-
-
-
-    // m_determinant(m);
-
-
-
+    printf("DET = %f\n", m_determinant(m));
 
     return EXIT_SUCCESS;
 }
