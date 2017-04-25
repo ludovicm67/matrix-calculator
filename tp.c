@@ -13,7 +13,7 @@ typedef struct matrix {
 // Permet de générer une nouvelle matrice
 Matrix newMatrix(unsigned int nb_rows, unsigned int nb_columns) {
     Matrix m = malloc(sizeof(Matrix));
-    if (!m) return m;
+    if(!m) return m;
     m->nb_rows = nb_rows;
     m->nb_columns = nb_columns;
     m->mat = malloc(nb_rows * nb_columns * sizeof(E));
@@ -44,10 +44,10 @@ int isSquare(Matrix m) {
 // Teste si une matrice est symétrique
 int isSymetric(Matrix m) {
     unsigned int i, j, n = 0;
-    if (!isSquare(m)) return 0;
-    for (i = 0; i < m->nb_rows; i++) {
-        for (j = 0; j < m->nb_columns; j++) {
-            if (getElt(m, i, j) != getElt(m, j, i)) {
+    if(!isSquare(m)) return 0;
+    for(i = 0; i < m->nb_rows; i++) {
+        for(j = 0; j < m->nb_columns; j++) {
+            if(getElt(m, i, j) != getElt(m, j, i)) {
                 return 0;
             }
             n++;
@@ -62,8 +62,8 @@ Matrix transpose(Matrix m) {
     unsigned int i, j;
     Matrix r = newMatrix(m->nb_columns, m->nb_rows);
 
-    for (i = 0; i < m->nb_rows; i++) {
-        for (j = 0; j < m->nb_columns; j++) {
+    for(i = 0; i < m->nb_rows; i++) {
+        for(j = 0; j < m->nb_columns; j++) {
             setElt(r, i, j, getElt(m, j, i));
         }
     }
@@ -74,7 +74,7 @@ Matrix transpose(Matrix m) {
 // Permet d'afficher une matrice
 void printMatrix(Matrix m) {
 
-    if (!m) {
+    if(!m) {
         printf("Y'a comme un bug dans la matrice (:\n");
         return;
     }
@@ -82,8 +82,8 @@ void printMatrix(Matrix m) {
     unsigned int i, j;
 
     printf("\nAFFICHAGE DE LA MATRICE %dx%d :\n", m->nb_rows, m->nb_columns);
-    for (i = 0; i < m->nb_rows; i++) {
-        for (j = 0; j < m->nb_columns; j++) {
+    for(i = 0; i < m->nb_rows; i++) {
+        for(j = 0; j < m->nb_columns; j++) {
             printf("\t%.0f", getElt(m, i, j));
         }
         printf("\n");
@@ -98,8 +98,8 @@ Matrix addition(Matrix m1, Matrix m2) {
     Matrix m = newMatrix(m1->nb_rows, m1->nb_columns);
     unsigned int i, j;
 
-    for (i = 0; i < m->nb_rows; i++) {
-        for (j = 0; j < m->nb_columns; j++) {
+    for(i = 0; i < m->nb_rows; i++) {
+        for(j = 0; j < m->nb_columns; j++) {
             setElt(m, i, j, getElt(m1, i, j) + getElt(m2, i, j));
         }
     }
@@ -110,7 +110,7 @@ Matrix addition(Matrix m1, Matrix m2) {
 // Multiplie une matrice par un scalaire
 Matrix mult_scalar(E s, Matrix m) {
     unsigned int i;
-    for (i = 0; i < m->nb_rows * m->nb_columns; i++) {
+    for(i = 0; i < m->nb_rows * m->nb_columns; i++) {
         m->mat[i] *= s;
     }
     return m;
@@ -118,16 +118,16 @@ Matrix mult_scalar(E s, Matrix m) {
 
 // Permet d'effectuer la multiplicaton de deux matrices
 Matrix multiplication(Matrix a, Matrix b) {
-    if (a->nb_columns != b->nb_rows) return NULL;
+    if(a->nb_columns != b->nb_rows) return NULL;
 
     Matrix r = newMatrix(a->nb_rows, b->nb_columns);
     unsigned int i, j, k;
     E val;
 
-    for (i = 0; i < r->nb_rows; i++) {
-        for (j = 0; j < r->nb_columns; j++) {
+    for(i = 0; i < r->nb_rows; i++) {
+        for(j = 0; j < r->nb_columns; j++) {
             val = 0;
-            for (k = 0; k < a->nb_columns; k++) {
+            for(k = 0; k < a->nb_columns; k++) {
                 val += getElt(b, k, j) * getElt(a, i, k);
             }
             setElt(r, i, j, val);
@@ -139,17 +139,17 @@ Matrix multiplication(Matrix a, Matrix b) {
 }
 
 Matrix extraction(Matrix m, unsigned int row, unsigned int column) {
-    if (m->nb_rows <= row || m->nb_columns <= column) return m;
+    if(m->nb_rows <= row || m->nb_columns <= column) return m;
 
     Matrix r = newMatrix(m->nb_rows-1, m->nb_columns-1);
     unsigned int i, j, x, y;
 
-    for (i = 0; i < r->nb_rows; i++) {
-        for (j = 0; j < r->nb_columns; j++) {
+    for(i = 0; i < r->nb_rows; i++) {
+        for(j = 0; j < r->nb_columns; j++) {
             x = i;
             y = j;
-            if (i >= row) x++;
-            if (j >= column) y++;
+            if(i >= row) x++;
+            if(j >= column) y++;
             setElt(r, i, j, getElt(m, x, y));
         }
     }
@@ -157,13 +157,13 @@ Matrix extraction(Matrix m, unsigned int row, unsigned int column) {
     return r;
 }
 
-double det(Matrix m){
-	if(isSquare(m)){
+double det(Matrix m) {
+	if(isSquare(m)) {
 		if(m->nb_rows == 0) return 0;
 		if(m->nb_rows == 1) return getElt(m, 0, 0);
 		int i;
 		double somme = 0;
-		for(i = 0; i < m->nb_rows; i++){
+		for(i = 0; i < m->nb_rows; i++) {
 			somme += pow((-1), i)* getElt(m, 0, i)* (det(extraction(m, 0, i)));
 		}
 		return somme;
@@ -171,21 +171,22 @@ double det(Matrix m){
 
 }
 
-// float m_determinant(Matrix m) {
-//  int i;
+// multiplier la ligne i par un facteur k
+Matrix multiplier_ligne(Matrix m, unsigned int i, E k) {
+    // check si ligne existe
 
-//  if (m->nb_columns == 1) return getElt(m, 0, 0);
-//  if (m->nb_columns == 2)
-//      return (getElt(m, 0, 0) * getElt(m, 1, 1))
-//             - (getElt(m, 0, 1) * getElt(m, 1, 0));
+    return m;
+}
 
-//  Matrix sous_matrice = newMatrix()
-//  for (i = 0; i < m->nb_columns; i++) {
-//      pivot = getElt(m, 0, i);
-//      printf("%f\n", pivot);
-//      return m_determinant(extraction(m, 0, i));
-//  }
-// }
+// permute les lignes i et j de la matrice m
+Matrix permuter_ligne(Matrix m, unsigned int i, unsigned int j) {
+
+    // check : si a et b < m->nb_rows
+
+    // inverser elem par elem en ayant un elem tmp
+
+    return m;
+}
 
 int main() {
 
@@ -253,6 +254,7 @@ int main() {
     printMatrix(m);
 
     printf("DET = %f\n", det(m));
+
 
 
     // m_determinant(m);

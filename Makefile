@@ -1,3 +1,6 @@
-all:
-	gcc tp.c -lm -o tp && ./tp
+tp: tp.c
+	gcc tp.c -lm -o tp
 
+.PHONY: clean
+clean:
+	rm -f tp
