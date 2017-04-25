@@ -12,11 +12,13 @@ typedef struct matrix {
 
 // Permet de générer une nouvelle matrice
 Matrix newMatrix(unsigned int nb_rows, unsigned int nb_columns) {
+    unsigned int i;
     Matrix m = malloc(sizeof(Matrix));
     if(!m) return m;
     m->nb_rows = nb_rows;
     m->nb_columns = nb_columns;
     m->mat = malloc(nb_rows * nb_columns * sizeof(E));
+    for(i = 0; i < nb_rows * nb_columns; i++) m->mat[i] = 0;
     return m;
 }
 
@@ -209,6 +211,7 @@ Matrix permuter_ligne(Matrix m, unsigned int i, unsigned int j) {
     return m;
 }
 
+// prec : m doit être triangulariser
 E m_determinant(Matrix m) {
     unsigned int i;
     E determinant = 1;
@@ -244,7 +247,6 @@ void addition_multiplication(Matrix m, unsigned int i, unsigned int j, E k){
     }
     multiplier_ligne(m2, i, k);
     m1 = addition(m, m2);
-
     copy_matrice(m1, m);
 
     deleteMatrix(m1);
@@ -262,12 +264,9 @@ void triangulariser(Matrix m) {
     }
 
     for(i = 0; i < m->nb_rows-1; i++) {
-        printf(" ==LIGNE %d\n", i);
-
         for(j = i+1; j < m->nb_rows; j++) {
-            k = -getElt(m, j, 0) / getElt(m, i, 0);
-            addition_multiplication(m, i, j, k);
-            printf(" ======= Ligne %d, k = %f\n", j, k);
+            k = -getElt(m, j, i) / getElt(m, i, i);
+            addition_multiplication(m, j, i, k);
         }
     }
 
