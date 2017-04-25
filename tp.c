@@ -173,7 +173,16 @@ double det(Matrix m) {
 
 // multiplier la ligne i par un facteur k
 Matrix multiplier_ligne(Matrix m, unsigned int i, E k) {
-    // check si ligne existe
+
+    unsigned int j;
+
+    if(i < 0 || i >= m->nb_rows) {
+        fprintf(stderr, "La ligne %d n'existe pas dans cette matrice\n", i);
+        exit(EXIT_FAILURE);
+    }
+
+    for(j = 0; j < m->nb_columns; j++)
+        setElt(m, i, j, k * getElt(m, i, j));
 
     return m;
 }
@@ -251,6 +260,7 @@ int main() {
             setElt(m, i, j, n++);
         }
     }
+    m = multiplier_ligne(m, 0, 2);
     printMatrix(m);
 
     printf("DET = %f\n", det(m));
