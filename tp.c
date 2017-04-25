@@ -189,10 +189,19 @@ Matrix multiplier_ligne(Matrix m, unsigned int i, E k) {
 
 // permute les lignes i et j de la matrice m
 Matrix permuter_ligne(Matrix m, unsigned int i, unsigned int j) {
-
+    int k;
     // check : si a et b < m->nb_rows
-
-    // inverser elem par elem en ayant un elem tmp
+    if((i < m->nb_rows)&&(j < m->nb_rows)) {
+        for(k = 0; k < m->nb_columns; k++) {
+            E tmp_i = getElt(m, i, k);
+            E tmp_j = getElt(m, j, k);
+            setElt(m, i, k, tmp_j);
+            setElt(m, j, k, tmp_i);
+        }
+    }
+    else{
+        return NULL;
+    }
 
     return m;
 }
@@ -260,7 +269,9 @@ int main() {
             setElt(m, i, j, n++);
         }
     }
-    m = multiplier_ligne(m, 0, 2);
+
+    multiplier_ligne(m, 0, 2);
+    permuter_ligne(m, 0, 1);
     printMatrix(m);
 
     printf("DET = %f\n", det(m));
