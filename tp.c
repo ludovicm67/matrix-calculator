@@ -177,7 +177,7 @@ double det(Matrix m) {
 }
 
 // multiplier la ligne i par un facteur k
-Matrix multiplier_ligne(Matrix m, unsigned int i, E k) {
+void multiplier_ligne(Matrix m, unsigned int i, E k) {
 
     unsigned int j;
 
@@ -188,8 +188,6 @@ Matrix multiplier_ligne(Matrix m, unsigned int i, E k) {
 
     for(j = 0; j < m->nb_columns; j++)
         setElt(m, i, j, k * getElt(m, i, j));
-
-    return m;
 }
 
 // permute les lignes i et j de la matrice m
@@ -211,27 +209,6 @@ Matrix permuter_ligne(Matrix m, unsigned int i, unsigned int j) {
     return m;
 }
 
-void triangulariser(Matrix m) {
-
-    unsigned int i, j;
-    E k;
-
-    if(!isSquare(m)) {
-        fprintf(stderr, "La matrice n'est pas carré\n");
-        exit(EXIT_FAILURE);
-    }
-
-    for(i = 0; i < m->nb_rows-1; i++) {
-        printf(" ==LIGNE %d\n", i);
-
-        for(j = i+1; j < m->nb_rows; j++) {
-            k = getElt(m, j, 0) / getElt(m, i, 0);
-            printf(" ======= Ligne %d, k = %f\n", j, k);
-        }
-    }
-
-}
-
 E m_determinant(Matrix m) {
     unsigned int i;
     E determinant = 1;
@@ -248,16 +225,52 @@ E m_determinant(Matrix m) {
     return determinant;
 }
 
-Matrix addition_multiplication(Matrix m, unsigned int i, unsigned int j, E k){
+// pre-cond : dest et in de même dimensions
+void copy_matrice(Matrix in, Matrix dest) {
+    unsigned int i, j;
+    for(i = 0; i < in->nb_rows; i++) {
+        for(j = 0; j < in->nb_columns; j++) {
+            setElt(dest, i, j, getElt(in, i, j));
+        }
+    }
+}
+
+void addition_multiplication(Matrix m, unsigned int i, unsigned int j, E k){
     int n;
-    Matrix m2 = newMatrix(m->nb_rows, m->nb_columns);
+    Matrix m1, m2 = newMatrix(m->nb_rows, m->nb_columns);
     for(n = 0; n < m->nb_columns; n++){
         E tmp = getElt(m, j, n);
         setElt(m2, i, n, tmp);
     }
     multiplier_ligne(m2, i, k);
-    m = addition(m, m2);
-    return m;
+    m1 = addition(m, m2);
+
+    copy_matrice(m1, m);
+
+    deleteMatrix(m1);
+    deleteMatrix(m2);
+}
+
+void triangulariser(Matrix m) {
+
+    unsigned int i, j;
+    E k;
+
+    if(!isSquare(m)) {
+        fprintf(stderr, "La matrice n'est pas carré\n");
+        exit(EXIT_FAILURE);
+    }
+
+    for(i = 0; i < m->nb_rows-1; i++) {
+        printf(" ==LIGNE %d\n", i);
+
+        for(j = i+1; j < m->nb_rows; j++) {
+            k = -getElt(m, j, 0) / getElt(m, i, 0);
+            addition_multiplication(m, i, j, k);
+            printf(" ======= Ligne %d, k = %f\n", j, k);
+        }
+    }
+
 }
 
 
@@ -328,8 +341,8 @@ int main() {
     multiplier_ligne(m, 0, 2);
     permuter_ligne(m, 0, 1);
     printMatrix(m);
-    m = addition_multiplication(m, 1, 0, 2);
-    printMatrix(m);
+    // m = addition_multiplication(m, 1, 0, 2);
+    // printMatrix(m);
 
     triangulariser(m);
     printMatrix(m);
