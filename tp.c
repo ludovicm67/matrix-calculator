@@ -206,6 +206,18 @@ Matrix permuter_ligne(Matrix m, unsigned int i, unsigned int j) {
     return m;
 }
 
+Matrix addition_multiplication(Matrix m, unsigned int i, unsigned int j, E k){
+    int n;
+    Matrix m2 = newMatrix(m->nb_rows, m->nb_columns);
+    for(n = 0; n < m->nb_columns; n++){
+        E tmp = getElt(m, j, n);
+        setElt(m2, i, n, tmp);
+    }
+    multiplier_ligne(m2, i, k);
+    m = addition(m, m2);
+    return m;
+}
+
 int main() {
 
     // Matrix m = newMatrix(3, 4);
@@ -272,6 +284,8 @@ int main() {
 
     multiplier_ligne(m, 0, 2);
     permuter_ligne(m, 0, 1);
+    printMatrix(m);
+    m = addition_multiplication(m, 1, 0, 2);
     printMatrix(m);
 
     printf("DET = %f\n", det(m));
