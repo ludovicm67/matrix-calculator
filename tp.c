@@ -287,19 +287,39 @@ void triangulariser(Matrix m) {
 PLU decomposition_LU(Matrix m){
     Matrix U = newMatrix(m->nb_rows, m->nb_columns);
     Matrix L = matrix_identite(m->nb_rows);
-    int i;
+    int i, j, k;
+    E somme;
     PLU m2;
     m2.U = U;
     m2.L = L;
 
     if(!isSquare(m)) {
-        fprintf(stderr, "La matrice n'est pas carré\n");
+        fprintf(stderr, "La matrice n'est pas carrée\n");
         exit(EXIT_FAILURE);
     }
 
     for (i = 0; i < m->nb_rows; i++) {
-
+        for (j = i; j <= m->nb_rows; j++) {
+            somme = 0;
+            for (k = 1; k < i; k++) {
+                somme += (getElt(m2.L, i, k) * getElt(m2.U, k, j));
+            }
+            setElt(m2.U, i, j, getElt(m, i, j) - somme);
+        }
+        for (j = i + 1; j <= m->nb_rows; j++) {
+            somme = 0;
+            for (k = 1; k < i; k++) {
+                somme += (getElt(m2.L, j, k) * getElt(m2.U, k, i));
+            }
+            setElt(m2.L, j, i, (1/getElt(m2.U, i, i)) * somme);
+        }
     }
+    somme = 0;
+    for (k = 1; k < m->nb_rows; k++) {
+        somme += (getElt(L, m->nb_rows, k) * getElt(U, k, m->nb_rows));
+    }
+    setElt(m2.U, m->nb_rows, m->nb_rows, getElt(m, m->nb_rows, m->nb_rows) - somme);
+    return m2;
 }
 
 
