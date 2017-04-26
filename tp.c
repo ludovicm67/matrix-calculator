@@ -284,6 +284,24 @@ void triangulariser(Matrix m) {
 
 }
 
+PLU decomposition_LU(Matrix m){
+    Matrix U = newMatrix(m->nb_rows, m->nb_columns);
+    Matrix L = matrix_identite(m->nb_rows);
+    int i;
+    PLU m2;
+    m2.U = U;
+    m2.L = L;
+
+    if(!isSquare(m)) {
+        fprintf(stderr, "La matrice n'est pas carré\n");
+        exit(EXIT_FAILURE);
+    }
+
+    for (i = 0; i < m->nb_rows; i++) {
+
+    }
+}
+
 
 int main() {
 
