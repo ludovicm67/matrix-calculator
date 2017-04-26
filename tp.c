@@ -298,27 +298,27 @@ PLU decomposition_LU(Matrix m){
         exit(EXIT_FAILURE);
     }
 
-    for (i = 0; i < m->nb_rows; i++) {
-        for (j = i; j <= m->nb_rows; j++) {
+    for (i = 0; i < m->nb_rows - 1; i++) {
+        for (j = i; j < m->nb_rows; j++) {
             somme = 0;
             for (k = 1; k < i; k++) {
                 somme += (getElt(m2.L, i, k) * getElt(m2.U, k, j));
             }
             setElt(m2.U, i, j, getElt(m, i, j) - somme);
         }
-        for (j = i + 1; j <= m->nb_rows; j++) {
+        for (j = i + 1; j < m->nb_rows; j++) {
             somme = 0;
             for (k = 1; k < i; k++) {
                 somme += (getElt(m2.L, j, k) * getElt(m2.U, k, i));
             }
-            setElt(m2.L, j, i, (1/getElt(m2.U, i, i)) * somme);
+            setElt(m2.L, j, i, (1/getElt(m2.U, i, i)) * (getElt(m, j, i) - somme));
         }
     }
     somme = 0;
-    for (k = 1; k < m->nb_rows; k++) {
+    for (k = 0; k < m->nb_rows - 1; k++) {
         somme += (getElt(L, m->nb_rows, k) * getElt(U, k, m->nb_rows));
     }
-    setElt(m2.U, m->nb_rows, m->nb_rows, getElt(m, m->nb_rows, m->nb_rows) - somme);
+    setElt(m2.U, m->nb_rows - 1, m->nb_rows - 1, getElt(m, m->nb_rows - 1, m->nb_rows - 1) - somme);
     return m2;
 }
 
@@ -395,7 +395,13 @@ int main() {
 
     triangulariser(m);
     printMatrix(m);
-
+    PLU m2 = decomposition_LU(m);
+    printf("U\n");
+    printMatrix(m2.U);
+    printf("L\n");
+    printMatrix(m2.L);
+    printf("Produit :\n");
+    printMatrix(multiplication(m2.L, m2.U));
     printMatrix(matrix_identite(4));
 
     printf("DET = %f\n", det(m));
