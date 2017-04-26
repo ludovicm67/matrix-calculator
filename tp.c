@@ -10,6 +10,11 @@ typedef struct matrix {
     unsigned int nb_columns;
 } * Matrix;
 
+typedef struct {
+    Matrix L;
+    Matrix U;
+} Duo_matrix;
+
 // Permet de générer une nouvelle matrice
 Matrix newMatrix(unsigned int nb_rows, unsigned int nb_columns) {
     unsigned int i;
@@ -270,6 +275,24 @@ void triangulariser(Matrix m) {
         }
     }
 
+}
+
+PLU decomposition_LU(Matrix m){
+    Matrix U = newMatrix();
+    Matrix L = matrix_identite();
+    int i;
+    PLU m2;
+    m2.U = U;
+    m2.L = L;
+
+    if(!isSquare(m)) {
+        fprintf(stderr, "La matrice n'est pas carré\n");
+        exit(EXIT_FAILURE);
+    }
+
+    for (i = 0; i < m->nb_rows; i++)     {
+
+    }
 }
 
 
