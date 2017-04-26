@@ -10,6 +10,11 @@ typedef struct matrix {
     unsigned int nb_columns;
 } * Matrix;
 
+typedef struct {
+    Matrix L;
+    Matrix U;
+} PLU;
+
 // Permet de générer une nouvelle matrice
 Matrix newMatrix(unsigned int nb_rows, unsigned int nb_columns) {
     unsigned int i;
@@ -97,6 +102,13 @@ void printMatrix(Matrix m) {
     }
     printf("\n");
 
+}
+
+Matrix matrix_identite(unsigned int n) {
+    unsigned int i;
+    Matrix m = newMatrix(n, n);
+    for (i = 0; i < n; i++) setElt(m, i, i, 1);
+    return m;
 }
 
 // Additionne deux matrices
@@ -345,6 +357,8 @@ int main() {
 
     triangulariser(m);
     printMatrix(m);
+
+    printMatrix(matrix_identite(4));
 
     printf("DET = %f\n", det(m));
     printf("DET = %f\n", m_determinant(m));
