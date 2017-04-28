@@ -202,6 +202,24 @@ double det(Matrix m) {
 
 }
 
+Matrix inversion(Matrix m) {
+    int i, j;
+
+    if(!det(m)) {
+        return NULL;
+    }
+
+    Matrix inverse = newMatrix(m->nb_rows, m->nb_columns);
+    for(i = 0; i < m->nb_rows; i++){
+        for(j = 0; j < m->nb_columns; j++){
+            setElt(inverse, i, j, pow((-1), i) * pow((-1), j)* det(extraction(m, i, j)));
+            printMatrix(extraction(m, i, j));
+        }
+    }
+    mult_scalar(((-1)/det(m)),inverse);
+    return inverse;
+}
+
 // multiplier la ligne i par un facteur k
 void multiplier_ligne(Matrix m, unsigned int i, E k) {
 
@@ -341,6 +359,21 @@ PLU decomposition_LU(Matrix m){
 }
 
 int main() {
+
+    Matrix m = newMatrix(3, 3);
+    setElt(m, 0, 0, 1);
+    setElt(m, 0, 1, 1);
+    setElt(m, 0, 2, 2);
+    setElt(m, 1, 0, 1);
+    setElt(m, 1, 1, 2);
+    setElt(m, 1, 2, 1);
+    setElt(m, 2, 0, 2);
+    setElt(m, 2, 1, 1);
+    setElt(m, 2, 2, 1);
+    printf("Matrice :\n");
+    printMatrix(m);
+    printf("Inverse :\n");
+    printMatrix(inversion(m));
 
     unsigned int i, need_prompt = 0, is_first = 1;
     unsigned int loop = 1; // permet de boucler
