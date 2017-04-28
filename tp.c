@@ -188,22 +188,28 @@ Matrix extraction(Matrix m, unsigned int row, unsigned int column) {
     return r;
 }
 
-double det(Matrix m) {
-	if(isSquare(m)) {
-        if((m->nb_rows == 2) && (m->nb_columns == 2)) {
-            return getElt(m, 0, 0) * getElt(m, 1, 1) - (getElt(m, 0, 1) * getElt(m, 1, 0));
-        }
-		//if(m->nb_rows == 0) return 0;
-		//if(m->nb_rows == 1) return getElt(m, 0, 0);
-		int i;
-		double somme = 0;
-		for(i = 0; i < m->nb_rows; i++) {
-			somme += pow((-1), i)* getElt(m, 0, i)* (det(extraction(m, 0, i)));
-		}
-        printf("%d\n", somme);
-		return somme;
-	}
+E det(Matrix m) {
+    int i;
+    E somme = 0;
 
+    if(!isSquare(m)) {
+        fprintf(stderr, "La matrice n'est pas carrée\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if(m->nb_rows == 0) return 0;
+    else if(m->nb_rows == 1) return getElt(m, 0, 0);
+
+    // Cas de la matrice 2x2
+    if((m->nb_rows == 2) && (m->nb_columns == 2)) {
+        return getElt(m, 0, 0) * getElt(m, 1, 1) - (getElt(m, 0, 1) * getElt(m, 1, 0));
+    }
+
+    for(i = 0; i < m->nb_rows; i++) {
+        somme += pow((-1), i) * getElt(m, 0, i) * (det(extraction(m, 0, i)));
+    }
+
+    return somme;
 }
 
 Matrix inversion(Matrix m) {
@@ -214,18 +220,16 @@ Matrix inversion(Matrix m) {
     }
 
     Matrix inverse = newMatrix(m->nb_rows, m->nb_columns);
-    for(i = 0; i < m->nb_rows; i++){
-        for(j = 0; j < m->nb_columns; j++){
+    for(i = 0; i < m->nb_rows; i++) {
+        for(j = 0; j < m->nb_columns; j++) {
             if (((-1 * (j % 2)) -1 * (i % 2)) == -1) {
                 setElt(inverse, i, j, -det(extraction(m, i, j)));
-            }
-            else {
+            } else {
                 setElt(inverse, i, j, det(extraction(m, i, j)));
             }
-            printMatrix(extraction(m, i, j));
         }
     }
-    mult_scalar(((-1)/det(m)),inverse);
+    mult_scalar((1/det(m)), inverse);
     return inverse;
 }
 
@@ -369,6 +373,7 @@ PLU decomposition_LU(Matrix m){
 
 int main() {
 
+    // Matrix m = newMatrix(4, 4);
     Matrix m = newMatrix(3, 3);
     setElt(m, 0, 0, 1);
     setElt(m, 0, 1, 1);
@@ -379,10 +384,23 @@ int main() {
     setElt(m, 2, 0, 2);
     setElt(m, 2, 1, 1);
     setElt(m, 2, 2, 1);
+
+    // setElt(m, 0, 3, 3);
+    // setElt(m, 1, 3, 4);
+    // setElt(m, 2, 3, 5);
+    // setElt(m, 3, 0, 6);
+    // setElt(m, 3, 1, 7);
+    // setElt(m, 3, 2, 8);
+    // setElt(m, 3, 3, 9);
+
     printf("Matrice :\n");
     printMatrix(m);
+    det(m);
+
     printf("Inverse :\n");
     printMatrix(inversion(m));
+
+    return EXIT_SUCCESS;
 
     unsigned int i, need_prompt = 0, is_first = 1;
     unsigned int loop = 1; // permet de boucler
