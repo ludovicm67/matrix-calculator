@@ -11,6 +11,7 @@ typedef struct matrix {
 } * Matrix;
 
 typedef struct {
+    Matrix P;
     Matrix L;
     Matrix U;
 } PLU;
@@ -285,40 +286,56 @@ void triangulariser(Matrix m) {
 }
 
 PLU decomposition_LU(Matrix m){
-    Matrix U = newMatrix(m->nb_rows, m->nb_columns);
+    Matrix P = matrix_identite(m->nb_rows);
     Matrix L = matrix_identite(m->nb_rows);
-    int i, j, k;
-    E somme;
+    Matrix U = newMatrix(m->nb_rows, m->nb_rows);
+    int i, j, k, n = m->nb_rows;
+    E somme, l, p, temp, q;
     PLU m2;
+    m2.P = P;
     m2.U = U;
     m2.L = L;
+    copy_matrice(m, m2.U);
 
     if(!isSquare(m)) {
         fprintf(stderr, "La matrice n'est pas carrée\n");
         exit(EXIT_FAILURE);
     }
 
-    for (i = 0; i < m->nb_rows - 1; i++) {
-        for (j = i; j < m->nb_rows; j++) {
-            somme = 0;
-            for (k = 1; k < i; k++) {
-                somme += (getElt(m2.L, i, k) * getElt(m2.U, k, j));
+    for (k = 0; k < n; k++) {
+        p = getElt(m2.U, k, k);
+        l = k;
+        for (i = k; i < n; i++) {
+            if (abs(getElt(m2.U, i, k)) > p) {
+                p = getElt(m2.U, i, k);
+                l = i;
             }
-            setElt(m2.U, i, j, getElt(m, i, j) - somme);
         }
-        for (j = i + 1; j < m->nb_rows; j++) {
-            somme = 0;
-            for (k = 1; k < i; k++) {
-                somme += (getElt(m2.L, j, k) * getElt(m2.U, k, i));
+        if (l != k) {
+            for(j = 0; j < n; j++) {
+                temp = getElt(m2.U, k, j);
+                setElt(m2.U, k, j, getElt(m2.U, l, j));
+                setElt(m2.U, l, j, temp);
+                if (j < k) {
+                    temp = getElt(m2.L, k, j);
+                    setElt(m2.L, k, j, getElt(m2.L, l, j));
+                    setElt(m2.L, l, j, temp);
+                    temp = getElt(m2.P, k, j);
+                    setElt(m2.P, k, j, getElt(m2.P, l, j));
+                    setElt(m2.P, l, j, temp);
+                }
             }
-            setElt(m2.L, j, i, (1/getElt(m2.U, i, i)) * (getElt(m, j, i) - somme));
+            for (i = k + 2; i < n; i++){
+                q = getElt(m2.U, i, k);
+                setElt(m2.U, i, k, 0);
+                setElt(m2.L, i, k, (q/p));
+                for (j = k + 2; j < n; j++) {
+                    setElt(m2.U, i, j, getElt(m2.U, i, j) - (getElt(m2.U, k, j) * (q/p)));
+                }
+            }
         }
     }
-    somme = 0;
-    for (k = 0; k < m->nb_rows - 1; k++) {
-        somme += (getElt(L, m->nb_rows, k) * getElt(U, k, m->nb_rows));
-    }
-    setElt(m2.U, m->nb_rows - 1, m->nb_rows - 1, getElt(m, m->nb_rows - 1, m->nb_rows - 1) - somme);
+
     return m2;
 }
 
@@ -396,11 +413,15 @@ int main() {
     triangulariser(m);
     printMatrix(m);
     PLU m2 = decomposition_LU(m);
-    printf("U\n");
+    printf("Matrice P:\n");
+    printMatrix(m2.P);
+    printf("Matrice U:\n");
     printMatrix(m2.U);
-    printf("L\n");
+    printf("Matrice L:\n");
     printMatrix(m2.L);
-    printf("Produit :\n");
+    printf("P * A:\n");
+    printMatrix(multiplication(m2.P, m));
+    printf("L * U:\n");
     printMatrix(multiplication(m2.L, m2.U));
     printMatrix(matrix_identite(4));
 
