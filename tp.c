@@ -1,7 +1,11 @@
-#include <stdlib.h>
-#include <stdio.h>
 #include <assert.h>
 #include <math.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+
+#define PRINT_PROMPT() printf(">>> ");
 
 typedef float E;
 typedef struct matrix {
@@ -108,14 +112,19 @@ void printMatrix(Matrix m) {
     unsigned int i, j;
 
     printf("\nAFFICHAGE DE LA MATRICE %dx%d :\n", m->nb_rows, m->nb_columns);
+    printf("╭");
+    for(i = 0; i < m->nb_rows+1; i++) printf("        ");
+    printf("       ╮\n");
     for(i = 0; i < m->nb_rows; i++) {
+        printf("│   ");
         for(j = 0; j < m->nb_columns; j++) {
-            printf("\t%.20f", getElt(m, i, j));
+            printf("\t%.2f", getElt(m, i, j));
         }
-        printf("\n");
+        printf("\t\t│\n");
     }
-    printf("\n");
-
+    printf("╰");
+    for(i = 0; i < m->nb_rows+1; i++) printf("        ");
+    printf("       ╯\n");
 }
 
 Matrix matrix_identite(unsigned int n) {
@@ -339,7 +348,39 @@ void triangulariser(Matrix m) {
 // }
 
 
+
 int main() {
+
+    unsigned int i, need_prompt = 0;
+    unsigned int loop = 1; // permet de boucler
+    char * line = NULL;
+    size_t len;
+
+    Matrix * tab_matrix = malloc(26 * sizeof(Matrix));
+
+    Matrix m2 = newMatrix(3, 3);
+    for (int i = 0; i < 3 * 3; i++) {
+        m2->mat[i] = i;
+    }
+    printMatrix(m2);
+
+
+    if(isatty(0)) need_prompt = 1;
+
+    if(need_prompt) PRINT_PROMPT();
+    while(loop) {
+        if(getline(&line, &len, stdin) != -1) {
+            line[strcspn(line, "\r\n")] = 0;
+            if(strlen(line) == 0) break;
+            printf(" == %s\n", line);
+        } else loop = 0;
+        if(need_prompt && loop) PRINT_PROMPT();
+    }
+
+    free(line);
+
+    exit(EXIT_SUCCESS);
+
 
     // Matrix m = newMatrix(3, 4);
     // m->mat[0] = 0;
