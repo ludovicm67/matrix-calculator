@@ -47,6 +47,7 @@ void setElt(Matrix m, unsigned int row, unsigned int column, E val) {
 
 // Permet de supprimer une matrice
 void deleteMatrix(Matrix m) {
+    if(!m) return;
     free(m->mat);
     free(m);
 }
@@ -348,13 +349,6 @@ int main() {
 
     Matrix * tab_matrix = malloc(26 * sizeof(Matrix));
 
-    Matrix m3 = newMatrix(3, 3);
-    for (int i = 0; i < 3 * 3; i++) {
-        m3->mat[i] = i;
-    }
-    printMatrix(m3);
-
-
     if(isatty(0)) need_prompt = 1;
 
     if(need_prompt) PRINT_PROMPT();
@@ -367,39 +361,9 @@ int main() {
         if(need_prompt && loop) PRINT_PROMPT();
     }
 
+    for(i = 0; i < 26; i++) deleteMatrix(tab_matrix[i]);
+    free(tab_matrix);
     free(line);
-
-    exit(EXIT_SUCCESS);
-
-
-    // Matrix m = newMatrix(4, 4);
-    // int n = 1;
-    // for (int i = 0; i < 4; i++) {
-    //     for (int j = 0; j < 4; j++) {
-    //         setElt(m, i, j, n++);
-    //     }
-    // }
-
-    // multiplier_ligne(m, 0, 2);
-    // permuter_ligne(m, 0, 1);
-
-    // triangulariser(m);
-    // printMatrix(m);
-    // PLU m2 = decomposition_LU(m);
-    // printf("Matrice P:\n");
-    // printMatrix(m2.P);
-    // printf("Matrice U:\n");
-    // printMatrix(m2.U);
-    // printf("Matrice L:\n");
-    // printMatrix(m2.L);
-    // printf("P * A:\n");
-    // printMatrix(multiplication(m2.P, m));
-    // printf("L * U:\n");
-    // printMatrix(multiplication(m2.L, m2.U));
-    // printMatrix(matrix_identite(4));
-
-    // printf("DET = %f\n", det(m));
-    // printf("DET = %f\n", m_determinant(m));
 
     return EXIT_SUCCESS;
 }
