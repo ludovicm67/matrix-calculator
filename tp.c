@@ -342,9 +342,9 @@ PLU decomposition_LU(Matrix m){
 
 int main() {
 
-    unsigned int i, need_prompt = 0;
+    unsigned int i, need_prompt = 0, is_first = 1;
     unsigned int loop = 1; // permet de boucler
-    char * line = NULL;
+    char *line = NULL, *tok, *start_tok;
     size_t len;
 
     Matrix * tab_matrix = malloc(26 * sizeof(Matrix));
@@ -357,6 +357,28 @@ int main() {
             line[strcspn(line, "\r\n")] = 0;
             if(strlen(line) == 0) break;
             printf(" == %s\n", line);
+
+            tok = strdup(line);
+            start_tok = tok;
+            while ((tok = strtok(tok, "  \t\r\n")) != NULL) {
+                if (*tok == '#') break;
+                if (is_first) {
+                    // Quitte le programme si l'instruction commence par "quit"
+                    if (!memcmp(tok, "quit", 4)) {
+                        printf("Au revoir ! :)\n");
+                        loop = 0;
+                        break;
+                    } else if(!memcmp(tok, "define", 6)) {
+                        printf("Nombre de lignes :\n");
+                        printf("Nombre de colonnes :\n");
+
+                    }
+                    is_first = 0;
+                }
+                tok = NULL;
+            }
+            free(start_tok);
+
         } else loop = 0;
         if(need_prompt && loop) PRINT_PROMPT();
     }
