@@ -344,65 +344,65 @@ PLU decomposition_LU(Matrix m){
 
 int main() {
 
-    // unsigned int i, need_prompt = 0;
-    // unsigned int loop = 1; // permet de boucler
-    // char * line = NULL;
-    // size_t len;
+    unsigned int i, need_prompt = 0;
+    unsigned int loop = 1; // permet de boucler
+    char * line = NULL;
+    size_t len;
 
-    // Matrix * tab_matrix = malloc(26 * sizeof(Matrix));
+    Matrix * tab_matrix = malloc(26 * sizeof(Matrix));
 
-    // Matrix m3 = newMatrix(3, 3);
-    // for (int i = 0; i < 3 * 3; i++) {
-    //     m3->mat[i] = i;
-    // }
-    // printMatrix(m3);
-
-
-    // if(isatty(0)) need_prompt = 1;
-
-    // if(need_prompt) PRINT_PROMPT();
-    // while(loop) {
-    //     if(getline(&line, &len, stdin) != -1) {
-    //         line[strcspn(line, "\r\n")] = 0;
-    //         if(strlen(line) == 0) break;
-    //         printf(" == %s\n", line);
-    //     } else loop = 0;
-    //     if(need_prompt && loop) PRINT_PROMPT();
-    // }
-
-    // free(line);
-
-    // exit(EXIT_SUCCESS);
+    Matrix m3 = newMatrix(3, 3);
+    for (int i = 0; i < 3 * 3; i++) {
+        m3->mat[i] = i;
+    }
+    printMatrix(m3);
 
 
-    Matrix m = newMatrix(4, 4);
-    int n = 1;
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) {
-            setElt(m, i, j, n++);
-        }
+    if(isatty(0)) need_prompt = 1;
+
+    if(need_prompt) PRINT_PROMPT();
+    while(loop) {
+        if(getline(&line, &len, stdin) != -1) {
+            line[strcspn(line, "\r\n")] = 0;
+            if(strlen(line) == 0) break;
+            printf(" == %s\n", line);
+        } else loop = 0;
+        if(need_prompt && loop) PRINT_PROMPT();
     }
 
-    multiplier_ligne(m, 0, 2);
-    permuter_ligne(m, 0, 1);
+    free(line);
 
-    triangulariser(m);
-    printMatrix(m);
-    PLU m2 = decomposition_LU(m);
-    printf("Matrice P:\n");
-    printMatrix(m2.P);
-    printf("Matrice U:\n");
-    printMatrix(m2.U);
-    printf("Matrice L:\n");
-    printMatrix(m2.L);
-    printf("P * A:\n");
-    printMatrix(multiplication(m2.P, m));
-    printf("L * U:\n");
-    printMatrix(multiplication(m2.L, m2.U));
-    printMatrix(matrix_identite(4));
+    exit(EXIT_SUCCESS);
 
-    printf("DET = %f\n", det(m));
-    printf("DET = %f\n", m_determinant(m));
+
+    // Matrix m = newMatrix(4, 4);
+    // int n = 1;
+    // for (int i = 0; i < 4; i++) {
+    //     for (int j = 0; j < 4; j++) {
+    //         setElt(m, i, j, n++);
+    //     }
+    // }
+
+    // multiplier_ligne(m, 0, 2);
+    // permuter_ligne(m, 0, 1);
+
+    // triangulariser(m);
+    // printMatrix(m);
+    // PLU m2 = decomposition_LU(m);
+    // printf("Matrice P:\n");
+    // printMatrix(m2.P);
+    // printf("Matrice U:\n");
+    // printMatrix(m2.U);
+    // printf("Matrice L:\n");
+    // printMatrix(m2.L);
+    // printf("P * A:\n");
+    // printMatrix(multiplication(m2.P, m));
+    // printf("L * U:\n");
+    // printMatrix(multiplication(m2.L, m2.U));
+    // printMatrix(matrix_identite(4));
+
+    // printf("DET = %f\n", det(m));
+    // printf("DET = %f\n", m_determinant(m));
 
     return EXIT_SUCCESS;
 }
