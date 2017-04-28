@@ -140,12 +140,11 @@ Matrix addition(Matrix m1, Matrix m2) {
 }
 
 // Multiplie une matrice par un scalaire
-Matrix mult_scalar(E s, Matrix m) {
+void mult_scalar(E s, Matrix m) {
     unsigned int i;
     for(i = 0; i < m->nb_rows * m->nb_columns; i++) {
         m->mat[i] *= s;
     }
-    return m;
 }
 
 // Permet d'effectuer la multiplicaton de deux matrices
@@ -217,7 +216,7 @@ void multiplier_ligne(Matrix m, unsigned int i, E k) {
 }
 
 // permute les lignes i et j de la matrice m
-Matrix permuter_ligne(Matrix m, unsigned int i, unsigned int j) {
+void permuter_ligne(Matrix m, unsigned int i, unsigned int j) {
     int k;
     // check : si a et b < m->nb_rows
     if((i < m->nb_rows) && (j < m->nb_rows)) {
@@ -227,9 +226,7 @@ Matrix permuter_ligne(Matrix m, unsigned int i, unsigned int j) {
             setElt(m, i, k, tmp_j);
             setElt(m, j, k, tmp_i);
         }
-    } else return NULL;
-
-    return m;
+    } else return;
 }
 
 // prec : m doit être triangulariser
@@ -305,21 +302,21 @@ PLU decomposition_LU(Matrix m){
     m2.L = L;
     copy_matrice(m, m2.U);
 
-    for (k = 0; k < n; k++) {
+    for(k = 0; k < n; k++) {
         p = getElt(m2.U, k, k);
         l = k;
-        for (i = k; i < n; i++) {
-            if (abs(getElt(m2.U, i, k)) > p) {
+        for(i = k; i < n; i++) {
+            if(abs(getElt(m2.U, i, k)) > p) {
                 p = getElt(m2.U, i, k);
                 l = i;
             }
         }
-        if (l != k) {
+        if(l != k) {
             for(j = 0; j < n; j++) {
                 temp = getElt(m2.U, k, j);
                 setElt(m2.U, k, j, getElt(m2.U, l, j));
                 setElt(m2.U, l, j, temp);
-                if (j < k) {
+                if(j < k) {
                     temp = getElt(m2.L, k, j);
                     setElt(m2.L, k, j, getElt(m2.L, l, j));
                     setElt(m2.L, l, j, temp);
@@ -328,11 +325,11 @@ PLU decomposition_LU(Matrix m){
                     setElt(m2.P, l, j, temp);
                 }
             }
-            for (i = k + 2; i < n; i++){
+            for(i = k + 2; i < n; i++){
                 q = getElt(m2.U, i, k);
                 setElt(m2.U, i, k, 0);
                 setElt(m2.L, i, k, (q/p));
-                for (j = k + 2; j < n; j++) {
+                for(j = k + 2; j < n; j++) {
                     setElt(m2.U, i, j, getElt(m2.U, i, j) - (getElt(m2.U, k, j) * (q/p)));
                 }
             }
