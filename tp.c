@@ -190,13 +190,17 @@ Matrix extraction(Matrix m, unsigned int row, unsigned int column) {
 
 double det(Matrix m) {
 	if(isSquare(m)) {
-		if(m->nb_rows == 0) return 0;
-		if(m->nb_rows == 1) return getElt(m, 0, 0);
+        if((m->nb_rows == 2) && (m->nb_columns == 2)) {
+            return getElt(m, 0, 0) * getElt(m, 1, 1) - (getElt(m, 0, 1) * getElt(m, 1, 0));
+        }
+		//if(m->nb_rows == 0) return 0;
+		//if(m->nb_rows == 1) return getElt(m, 0, 0);
 		int i;
 		double somme = 0;
 		for(i = 0; i < m->nb_rows; i++) {
 			somme += pow((-1), i)* getElt(m, 0, i)* (det(extraction(m, 0, i)));
 		}
+        printf("%d\n", somme);
 		return somme;
 	}
 
@@ -212,7 +216,12 @@ Matrix inversion(Matrix m) {
     Matrix inverse = newMatrix(m->nb_rows, m->nb_columns);
     for(i = 0; i < m->nb_rows; i++){
         for(j = 0; j < m->nb_columns; j++){
-            setElt(inverse, i, j, pow((-1), i) * pow((-1), j)* det(extraction(m, i, j)));
+            if (((-1 * (j % 2)) -1 * (i % 2)) == -1) {
+                setElt(inverse, i, j, -det(extraction(m, i, j)));
+            }
+            else {
+                setElt(inverse, i, j, det(extraction(m, i, j)));
+            }
             printMatrix(extraction(m, i, j));
         }
     }
