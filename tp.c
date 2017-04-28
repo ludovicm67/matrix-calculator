@@ -15,20 +15,10 @@ typedef struct matrix {
 } * Matrix;
 
 typedef struct {
+    Matrix P;
     Matrix L;
     Matrix U;
-} * PLU;
-
-PLU newPLU() {
-    PLU r = malloc(sizeof(PLU));
-    if(!r) {
-        printf("Le malloc n'a pas fonctionné\n");
-        exit(EXIT_FAILURE);
-    }
-    r->L = NULL;
-    r->U = NULL;
-    return r;
-}
+} PLU;
 
 // Permet de générer une nouvelle matrice
 Matrix newMatrix(unsigned int nb_rows, unsigned int nb_columns) {
@@ -111,7 +101,7 @@ void printMatrix(Matrix m) {
 
     unsigned int i, j;
 
-    printf("\nAFFICHAGE DE LA MATRICE %dx%d :\n", m->nb_rows, m->nb_columns);
+    printf("AFFICHAGE DE LA MATRICE %dx%d :\n", m->nb_rows, m->nb_columns);
     printf("╭");
     for(i = 0; i < m->nb_rows+1; i++) printf("        ");
     printf("       ╮\n");
@@ -174,7 +164,6 @@ Matrix multiplication(Matrix a, Matrix b) {
             }
             setElt(r, i, j, val);
         }
-        printf("\n");
     }
 
     return r;
@@ -231,17 +220,14 @@ void multiplier_ligne(Matrix m, unsigned int i, E k) {
 Matrix permuter_ligne(Matrix m, unsigned int i, unsigned int j) {
     int k;
     // check : si a et b < m->nb_rows
-    if((i < m->nb_rows)&&(j < m->nb_rows)) {
+    if((i < m->nb_rows) && (j < m->nb_rows)) {
         for(k = 0; k < m->nb_columns; k++) {
             E tmp_i = getElt(m, i, k);
             E tmp_j = getElt(m, j, k);
             setElt(m, i, k, tmp_j);
             setElt(m, j, k, tmp_i);
         }
-    }
-    else{
-        return NULL;
-    }
+    } else return NULL;
 
     return m;
 }
@@ -307,133 +293,86 @@ void triangulariser(Matrix m) {
 
 }
 
-// PLU decomposition_LU(Matrix m){
+PLU decomposition_LU(Matrix m){
+    Matrix P = matrix_identite(m->nb_rows);
+    Matrix L = matrix_identite(m->nb_rows);
+    Matrix U = newMatrix(m->nb_rows, m->nb_rows);
+    int i, j, k, n = m->nb_rows;
+    E somme, l, p, temp, q;
+    PLU m2;
+    m2.P = P;
+    m2.U = U;
+    m2.L = L;
+    copy_matrice(m, m2.U);
 
-//     if(!isSquare(m)) {
-//         fprintf(stderr, "La matrice n'est pas carrée\n");
-//         exit(EXIT_FAILURE);
-//     }
+    for (k = 0; k < n; k++) {
+        p = getElt(m2.U, k, k);
+        l = k;
+        for (i = k; i < n; i++) {
+            if (abs(getElt(m2.U, i, k)) > p) {
+                p = getElt(m2.U, i, k);
+                l = i;
+            }
+        }
+        if (l != k) {
+            for(j = 0; j < n; j++) {
+                temp = getElt(m2.U, k, j);
+                setElt(m2.U, k, j, getElt(m2.U, l, j));
+                setElt(m2.U, l, j, temp);
+                if (j < k) {
+                    temp = getElt(m2.L, k, j);
+                    setElt(m2.L, k, j, getElt(m2.L, l, j));
+                    setElt(m2.L, l, j, temp);
+                    temp = getElt(m2.P, k, j);
+                    setElt(m2.P, k, j, getElt(m2.P, l, j));
+                    setElt(m2.P, l, j, temp);
+                }
+            }
+            for (i = k + 2; i < n; i++){
+                q = getElt(m2.U, i, k);
+                setElt(m2.U, i, k, 0);
+                setElt(m2.L, i, k, (q/p));
+                for (j = k + 2; j < n; j++) {
+                    setElt(m2.U, i, j, getElt(m2.U, i, j) - (getElt(m2.U, k, j) * (q/p)));
+                }
+            }
+        }
+    }
 
-//     PLU m2 = newPLU();
-//     m2->U = newMatrix(m->nb_rows, m->nb_columns);
-//     m2->L = matrix_identite(m->nb_rows);
-//     int i, j, k;
-//     E somme;
-
-//     for (i = 0; i < m->nb_rows - 1; i++) {
-//         for (j = i; j < m->nb_rows; j++) {
-//             somme = 0;
-//             for (k = 1; k < i; k++) {
-//                 somme += (getElt(m2->L, i, k) * getElt(m2->U, k, j));
-//             }
-//             setElt(m2->U, i, j, getElt(m, i, j) - somme);
-//         }
-//         for (j = i + 1; j < m->nb_rows; j++) {
-//             somme = 0;
-//             for (k = 1; k < i; k++) {
-//                 somme += (getElt(m2->L, j, k) * getElt(m2->U, k, i));
-//             }
-//             setElt(m2->L, j, i, (1/getElt(m2->U, i, i)) * somme);
-//         }
-//     }
-//     somme = 0;
-//     for (k = 1; k < m->nb_rows; k++) {
-//         somme += (getElt(L, m->nb_rows, k) * getElt(U, k, m->nb_rows));
-//     }
-//     // setElt(m2->U, m->nb_rows, m->nb_rows, getElt(m, m->nb_rows, m->nb_rows) - somme);
-
-
-
-//     return m2;
-// }
-
-
+    return m2;
+}
 
 int main() {
 
-    unsigned int i, need_prompt = 0;
-    unsigned int loop = 1; // permet de boucler
-    char * line = NULL;
-    size_t len;
+    // unsigned int i, need_prompt = 0;
+    // unsigned int loop = 1; // permet de boucler
+    // char * line = NULL;
+    // size_t len;
 
-    Matrix * tab_matrix = malloc(26 * sizeof(Matrix));
+    // Matrix * tab_matrix = malloc(26 * sizeof(Matrix));
 
-    Matrix m2 = newMatrix(3, 3);
-    for (int i = 0; i < 3 * 3; i++) {
-        m2->mat[i] = i;
-    }
-    printMatrix(m2);
-
-
-    if(isatty(0)) need_prompt = 1;
-
-    if(need_prompt) PRINT_PROMPT();
-    while(loop) {
-        if(getline(&line, &len, stdin) != -1) {
-            line[strcspn(line, "\r\n")] = 0;
-            if(strlen(line) == 0) break;
-            printf(" == %s\n", line);
-        } else loop = 0;
-        if(need_prompt && loop) PRINT_PROMPT();
-    }
-
-    free(line);
-
-    exit(EXIT_SUCCESS);
-
-
-    // Matrix m = newMatrix(3, 4);
-    // m->mat[0] = 0;
-    // m->mat[1] = 1;
-    // m->mat[2] = 2;
-    // m->mat[3] = 3;
-    // m->mat[4] = 4;
-    // m->mat[5] = 5;
-    // m->mat[6] = 6;
-
-    // Matrix w = newMatrix(3, 4);
-    // w->mat[0] = 40;
-    // w->mat[1] = 41;
-    // w->mat[2] = 42;
-    // w->mat[3] = 43;
-    // w->mat[4] = 44;
-    // w->mat[5] = 45;
-    // w->mat[6] = 46;
-
-    // setElt(m, 1, 2, 42);
-    // assert(getElt(m, 1, 2) == 42);
-    // printMatrix(m);
-    // printMatrix(w);
-    // Matrix t = addition(m, w);
-    // printMatrix(t);
-
-    // Matrix m2 = newMatrix(3, 3);
+    // Matrix m3 = newMatrix(3, 3);
     // for (int i = 0; i < 3 * 3; i++) {
-    //  m2->mat[i] = i;
+    //     m3->mat[i] = i;
+    // }
+    // printMatrix(m3);
+
+
+    // if(isatty(0)) need_prompt = 1;
+
+    // if(need_prompt) PRINT_PROMPT();
+    // while(loop) {
+    //     if(getline(&line, &len, stdin) != -1) {
+    //         line[strcspn(line, "\r\n")] = 0;
+    //         if(strlen(line) == 0) break;
+    //         printf(" == %s\n", line);
+    //     } else loop = 0;
+    //     if(need_prompt && loop) PRINT_PROMPT();
     // }
 
-    // printMatrix(transpose(m2));
+    // free(line);
 
-
-    // Matrix m1 = newMatrix (2, 2);
- //    setElt (m1, 0, 0, 2);
- //    setElt (m1, 0, 1, -3);
- //    setElt (m1, 1, 0, -1);
- //    setElt (m1, 1, 1, 2);
-    // printMatrix(m1);
-
- //    m2 = newMatrix (2, 3);
- //    setElt (m2, 0, 0, 3);
- //    setElt (m2, 0, 1, 1);
- //    setElt (m2, 0, 2, 2);
- //    setElt (m2, 1, 0, 1);
- //    setElt (m2, 1, 1, 0);
- //    setElt (m2, 1, 2, 2);
-    // printMatrix(m2);
-    // printf("==");
-    // printMatrix(multiplication(m1, m2));
-    // printf("===WOLOLO==\n");
-    // printMatrix(extraction(w, 0, 0));
+    // exit(EXIT_SUCCESS);
 
 
     Matrix m = newMatrix(4, 4);
@@ -446,31 +385,20 @@ int main() {
 
     multiplier_ligne(m, 0, 2);
     permuter_ligne(m, 0, 1);
-    printMatrix(m);
-
 
     triangulariser(m);
     printMatrix(m);
-
-    // m = addition_multiplication(m, 1, 0, 2);
-    // printMatrix(m);
-
-    // PLU p = decomposition_LU(m);
-    // printf("==COLS = %d\n", p->L->nb_columns);
-    // printf("==LIGNES = %d\n", p->L->nb_rows);
-    // printf("==COLS = %d\n", p->U->nb_columns);
-    // printf("==LIGNES = %d\n", p->U->nb_rows);
-
-    // printf("===val = %f\n", getElt(p->L, 0, 0));
-    // printf("==MAT L :\n");
-    // printMatrix(p->L);
-    // printf("==MAT U :\n");
-    // printMatrix(p->U);
-
-
-    triangulariser(m);
-    printMatrix(m);
-
+    PLU m2 = decomposition_LU(m);
+    printf("Matrice P:\n");
+    printMatrix(m2.P);
+    printf("Matrice U:\n");
+    printMatrix(m2.U);
+    printf("Matrice L:\n");
+    printMatrix(m2.L);
+    printf("P * A:\n");
+    printMatrix(multiplication(m2.P, m));
+    printf("L * U:\n");
+    printMatrix(multiplication(m2.L, m2.U));
     printMatrix(matrix_identite(4));
 
     printf("DET = %f\n", det(m));
