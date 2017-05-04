@@ -322,7 +322,7 @@ void triangulariser(Matrix m) {
 
 }
 
-PLU decomposition_LU(Matrix m){
+PLU decomposition_PLU(Matrix m){
     Matrix P = matrix_identite(m->nb_rows);
     Matrix L = matrix_identite(m->nb_rows);
     Matrix U = newMatrix(m->nb_rows, m->nb_rows);
@@ -369,6 +369,39 @@ PLU decomposition_LU(Matrix m){
     }
 
     return m2;
+}
+
+E * valeurs_propres(Matrix m){
+    E* val = malloc(2*sizeof(E));
+    E b, c, delta;
+
+    if(!isSquare(m)) {
+        fprintf(stderr, "La matrice n'est pas carrée\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if(m->nb_rows != 2) {
+        fprintf(stderr, "La matrice n'est pas de taille 2\n");
+    }
+
+    if(m->nb_rows == 2 && m->nb_columns == 2){
+        b = -(getElt(m,0,0) + getElt(m,1,1));
+        c = m_determinant(m);
+        delta = b*b - 4*c;
+        if(delta < 0){
+            fprintf(stderr, "Les valeurs propres ne sont pas réelles\n");
+            return NULL;
+        }
+        else if(delta == 0){
+            val[0] = -(b/2);
+            val[1] = val[0];
+        }
+        else {
+            val[0] = (-b-sqrtf(delta))/2;
+            val[1] = (-b+sqrtf(delta))/2;
+        }
+    }
+    return val;
 }
 
 int main() {
