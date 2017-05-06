@@ -30,8 +30,14 @@ Matrix newMatrix(unsigned int nb_rows, unsigned int nb_columns) {
     }
     m->nb_rows = nb_rows;
     m->nb_columns = nb_columns;
-    m->mat = malloc(nb_rows * nb_columns * sizeof(E));
-    for(i = 0; i < nb_rows * nb_columns; i++) m->mat[i] = 0;
+    m->mat = calloc(nb_rows * nb_columns, sizeof(E));
+    return m;
+}
+
+// Permet de générer une nouvelle matrice
+Matrix newMatrix_tab(unsigned int nb_rows, unsigned int nb_columns, E * tab) {
+    Matrix m = newMatrix(nb_rows, nb_columns);
+    memcpy(m->mat, tab, nb_rows * nb_columns * sizeof(E));
     return m;
 }
 
@@ -96,7 +102,7 @@ Matrix transpose(Matrix m) {
 void printMatrix(Matrix m) {
 
     if(!m) {
-        printf("Y'a comme un bug dans la matrice (:\n");
+        printf("Y'a comme un bug dans la matrice :(\n");
         return;
     }
 
@@ -206,7 +212,7 @@ E det(Matrix m) {
     }
 
     for(i = 0; i < m->nb_rows; i++) {
-        somme += pow((-1), i) * getElt(m, 0, i) * (det(extraction(m, 0, i)));
+        somme += (i%2 == 0 ? 1 : -1) * getElt(m, 0, i) * (det(extraction(m, 0, i)));
     }
 
     return somme;
@@ -322,6 +328,42 @@ void triangulariser(Matrix m) {
 
 }
 
+void inversion_gauss(Matrix m) {
+
+    unsigned int i, j;
+    E k;
+
+    if(!isSquare(m)) {
+        fprintf(stderr, "La matrice n'est pas carrée\n");
+        exit(EXIT_FAILURE);
+    }
+
+    Matrix id = matrix_identite(m->nb_rows);
+
+    for(i = 0; i < m->nb_rows-1; i++) {
+        for(j = i+1; j < m->nb_rows; j++) {
+            k = -getElt(m, j, i) / getElt(m, i, i);
+            addition_multiplication(m, j, i, k);
+            addition_multiplication(id, j, i, k);
+        }
+    }
+
+
+
+    printf("\n\n\nINVERSION DE LA MATRICE AVEC ALGO DE GAUSS\n");
+    printMatrix(id);
+
+    for(i = 0; i < m->nb_rows-1; i++) {
+        multiplier_ligne(m, i, 1/getElt(m, i, i));
+        multiplier_ligne(id, i, 1/getElt(id, i, i));
+    }
+
+
+    printf("\n\n\nINVERSION DE LA MATRICE AVEC ALGO DE GAUSS\n");
+    printMatrix(id);
+
+}
+
 PLU decomposition_LU(Matrix m){
     Matrix P = matrix_identite(m->nb_rows);
     Matrix L = matrix_identite(m->nb_rows);
@@ -373,6 +415,34 @@ PLU decomposition_LU(Matrix m){
 
 int main() {
 
+
+    // E data[] = {
+    //     1, -2, 4,
+    //     3, 5, -1,
+    //     2, -6, -3
+    // };
+    // Matrix m_test = newMatrix_tab(3, 3, data);
+
+    // printMatrix(m_test);
+    // printf("DETERMINANT = %f\n", det(m_test));
+    // triangulariser(m_test);
+    // printMatrix(m_test);
+
+
+    Matrix lambda = matrix_identite(2);
+    E data42[] = {
+        5, -3,
+        6, -4
+    };
+    Matrix m42 = newMatrix_tab(2, 2, data42);
+
+    printMatrix(m42);
+
+
+
+return EXIT_SUCCESS;
+
+
     // Matrix m = newMatrix(4, 4);
     Matrix m = newMatrix(3, 3);
     setElt(m, 0, 0, 1);
@@ -399,6 +469,7 @@ int main() {
 
     printf("Inverse :\n");
     printMatrix(inversion(m));
+    inversion_gauss(m);
 
     return EXIT_SUCCESS;
 
