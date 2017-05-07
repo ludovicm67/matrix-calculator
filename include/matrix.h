@@ -33,7 +33,7 @@ Matrix inversion(Matrix m);
 void multiplier_ligne(Matrix m, unsigned int i, E k);
 void permuter_ligne(Matrix m, unsigned int i, unsigned int j);
 E m_determinant(Matrix m);
-void copy_matrice(Matrix in, Matrix dest);
+void copy_matrix(Matrix source, Matrix dest);
 void addition_multiplication(Matrix m, unsigned int i, unsigned int j, E k);
 void triangulariser(Matrix m);
 void inversion_gauss(Matrix m);

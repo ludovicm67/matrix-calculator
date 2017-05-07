@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include "system.h"
 
 typedef float E;
 typedef struct matrix {
@@ -21,7 +22,7 @@ typedef struct {
 Matrix newMatrix(unsigned int nb_rows, unsigned int nb_columns) {
     Matrix m = malloc(sizeof(Matrix));
     if (!m) {
-        printf("Y'a comme un bug dans la matrice..\n");
+        print_error("Cannot allocate memory for the matrix");
         exit(EXIT_FAILURE);
     }
     m->nb_rows = nb_rows;
@@ -30,7 +31,7 @@ Matrix newMatrix(unsigned int nb_rows, unsigned int nb_columns) {
     return m;
 }
 
-// Permet de générer une nouvelle matrice
+// Permet de générer une nouvelle matrice depuis un tableau
 Matrix newMatrix_tab(unsigned int nb_rows, unsigned int nb_columns, E * tab) {
     Matrix m = newMatrix(nb_rows, nb_columns);
     memcpy(m->mat, tab, nb_rows * nb_columns * sizeof(E));
@@ -52,6 +53,16 @@ void deleteMatrix(Matrix m) {
     if (!m) return;
     free(m->mat);
     free(m);
+}
+
+// pre-cond : dest et source de même dimensions
+void copy_matrix(Matrix source, Matrix dest) {
+    unsigned int i, j;
+    for (i = 0; i < source->nb_rows; i++) {
+        for (j = 0; j < source->nb_columns; j++) {
+            setElt(dest, i, j, getElt(source, i, j));
+        }
+    }
 }
 
 // Teste si une matrice est carré
@@ -78,11 +89,6 @@ int isSymetric(Matrix m) {
 Matrix transpose(Matrix m) {
     unsigned int i, j;
 
-    if (!isSquare(m)) {
-        fprintf(stderr, "La matrice n'est pas carrée\n");
-        exit(EXIT_FAILURE);
-    }
-
     Matrix r = newMatrix(m->nb_columns, m->nb_rows);
 
     for (i = 0; i < m->nb_rows; i++) {
@@ -98,7 +104,7 @@ Matrix transpose(Matrix m) {
 void printMatrix(Matrix m) {
 
     if (!m) {
-        printf("Y'a comme un bug dans la matrice :(\n");
+        print_error("No matrix to print");
         return;
     }
 
@@ -119,6 +125,7 @@ void printMatrix(Matrix m) {
     printf("       ╯\n");
 }
 
+// Matrice identité
 Matrix matrix_identite(unsigned int n) {
     unsigned int i;
     Matrix m = newMatrix(n, n);
@@ -279,16 +286,6 @@ E m_determinant(Matrix m) {
     return determinant;
 }
 
-// pre-cond : dest et in de même dimensions
-void copy_matrice(Matrix in, Matrix dest) {
-    unsigned int i, j;
-    for (i = 0; i < in->nb_rows; i++) {
-        for (j = 0; j < in->nb_columns; j++) {
-            setElt(dest, i, j, getElt(in, i, j));
-        }
-    }
-}
-
 void addition_multiplication(Matrix m, unsigned int i, unsigned int j, E k) {
     unsigned int n;
     Matrix m1, m2 = newMatrix(m->nb_rows, m->nb_columns);
@@ -298,7 +295,7 @@ void addition_multiplication(Matrix m, unsigned int i, unsigned int j, E k) {
     }
     multiplier_ligne(m2, i, k);
     m1 = addition(m, m2);
-    copy_matrice(m1, m);
+    copy_matrix(m1, m);
 
     deleteMatrix(m1);
     deleteMatrix(m2);
@@ -369,7 +366,7 @@ PLU decomposition_PLU(Matrix m) {
     m2.P = P;
     m2.U = U;
     m2.L = L;
-    copy_matrice(m, m2.U);
+    copy_matrix(m, m2.U);
 
     for (k = 0; k < n; k++) {
         p = getElt(m2.U, k, k);

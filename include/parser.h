@@ -10,6 +10,8 @@ typedef struct s_assign {
     struct s_assign * prev;
 } assign;
 
+extern assign env;
+
 // ligne d'une matrice
 typedef struct s_matrix_row {
     unsigned int size;
@@ -31,7 +33,8 @@ typedef struct s_expression {
         MATRIX_RAW,
         SCALAR,
         ASSIGN,
-        IDENT
+        IDENT,
+        CALL
     } type;
     union {
         Matrix m;

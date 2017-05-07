@@ -6,48 +6,7 @@
 #include "mpc.h"
 #include "system.h"
 #include "matrix.h"
-
-/**
- * PARSER
- */
-typedef struct s_assign {
-    char * symbol;
-    struct s_expression * e;
-    struct s_assign * prev;
-} assign;
-
-// ligne d'une matrice
-typedef struct s_matrix_row {
-    unsigned int size;
-    float * row;
-} matrix_row;
-
-// structure de base permettant de générer ensuite une vraie matrice
-typedef struct s_matrix_raw {
-    unsigned int size;
-    struct s_matrix_row * raw;
-} matrix_raw;
-
-typedef struct s_expression {
-    enum {
-        UNKNOWN = 0,
-        ERROR,
-        MATRIX,
-        MATRIX_ROW,
-        MATRIX_RAW,
-        SCALAR,
-        ASSIGN,
-        IDENT
-    } type;
-    union {
-        Matrix m;
-        matrix_row mr;
-        matrix_raw mra;
-        float s;
-        assign a;
-        char * str;
-    } c;
-} * Expression;
+#include "parser.h"
 
 void print_expression(Expression e) {
     if (!e) print_error("Empty expression");
@@ -71,6 +30,9 @@ void print_expression(Expression e) {
             break;
         case IDENT:
             print_error("IDENT pas encore défini !");
+            break;
+        case CALL:
+            print_error("CALL not defined");
             break;
         default:
             print_error("Unknown expression type");
@@ -101,6 +63,17 @@ mpc_val_t* ident_to_expr(mpc_val_t* val) {
     return e;
 }
 
+mpc_val_t* call_to_expr(int n, mpc_val_t ** xs) {
+    Expression e = new_expression();
+
+    printf("N = %d\n", n);
+
+    // printf("IDENT = %s\n", *(char *) xs[0]);
+    // printf("VAL = %s\n", *(char *) xs[1]);
+
+    return e;
+}
+
 
 mpc_val_t *fold_sum(int n, mpc_val_t ** xs) {
     int i;
@@ -113,7 +86,11 @@ mpc_val_t *fold_sum(int n, mpc_val_t ** xs) {
     }
 
     for (i = 1; i < n; i++) {
-        e[0]->c.s += e[i]->c.s;
+        if (e[0]->type == MATRIX && e[i]->type == MATRIX) {
+            e[0]->c.m = addition(e[0]->c.m, e[i]->c.m);
+        } else {
+            e[0]->c.s += e[i]->c.s;
+        }
         free(xs[i]);
     }
 
@@ -131,7 +108,11 @@ mpc_val_t *fold_prod(int n, mpc_val_t ** xs) {
     }
 
     for (i = 1; i < n; i++) {
-        e[0]->c.s *= e[i]->c.s;
+        if (e[0]->type == MATRIX && e[i]->type == MATRIX) {
+            e[0]->c.m = multiplication(e[0]->c.m, e[i]->c.m);
+        } else {
+            e[0]->c.s *= e[i]->c.s;
+        }
         free(xs[i]);
     }
 
@@ -249,11 +230,17 @@ mpc_val_t *fold_value(int n, mpc_val_t ** xs) {
     switch (*op) {
         case '-':
             // Si l'opérateur était un -, on multiplie par -1
-            e->c.s *= -1;
+            if (e->type == SCALAR) e->c.s *= -1;
+            else if (e->type == MATRIX) {
+                mult_scalar(-1, e->c.m);
+            }
             break;
         case '/':
             // Si l'opérateur était un /, on  prend l'inverse
-            e->c.s = 1 / e->c.s;
+            if (e->type == SCALAR) e->c.s = 1 / e->c.s;
+            else if (e->type == MATRIX) {
+                e->c.m = inversion(e->c.m);
+            }
             break;
         default:
             break;
@@ -330,11 +317,18 @@ void run_parser() {
         free
     ), free));
 
+    mpc_define(Call, mpc_and(2, call_to_expr,
+        Ident,
+        mpc_parens(Expr, free),
+        free
+    ));
+
     mpc_define(Value, mpc_strip(mpc_or(4,
+        Call,
+        mpc_apply(Ident, ident_to_expr),
         mpc_apply(Constant, val_to_expr),
         Mat,
-        mpc_parens(Expr, free),
-        mpc_apply(Ident, ident_to_expr)
+        mpc_parens(Expr, free)
     )));
 
     mpc_define(Line, mpc_strip(mpc_or(2,
