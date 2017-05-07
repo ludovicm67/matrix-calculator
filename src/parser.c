@@ -65,11 +65,27 @@ mpc_val_t* ident_to_expr(mpc_val_t* val) {
 
 mpc_val_t* call_to_expr(int n, mpc_val_t ** xs) {
     Expression e = new_expression();
+    char * name = (char *) xs[0];
+    Expression param = (Expression) xs[1];
+    unsigned int has_param = param != NULL;
 
-    printf("N = %d\n", n);
+    if (n == 2) {
+        if (has_param) {
+            if (!strcmp(name, "id")) {
+                if (param->type == SCALAR) {
+                    e->type = MATRIX;
+                    e->c.m = matrix_identite(param->c.s);
+                }
+            }
 
-    // printf("IDENT = %s\n", *(char *) xs[0]);
-    // printf("VAL = %s\n", *(char *) xs[1]);
+            else if (!strcmp(name, "det")) {
+                if (param->type == MATRIX) {
+                    e->type = SCALAR;
+                    e->c.s = det(param->c.m);
+                }
+            }
+        }
+    }
 
     return e;
 }
@@ -319,7 +335,7 @@ void run_parser() {
 
     mpc_define(Call, mpc_and(2, call_to_expr,
         Ident,
-        mpc_parens(Expr, free),
+        mpc_parens(mpc_maybe(Expr), free),
         free
     ));
 
