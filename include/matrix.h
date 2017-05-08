@@ -14,6 +14,7 @@ typedef struct {
     Matrix U;
 } PLU;
 
+Matrix new_matrix_copy(Matrix m);
 Matrix newMatrix(unsigned int nb_rows, unsigned int nb_columns);
 Matrix newMatrix_tab(unsigned int nb_rows, unsigned int nb_columns, E * tab);
 E getElt(Matrix m, unsigned int row, unsigned int column);
@@ -37,7 +38,7 @@ E m_determinant(Matrix m);
 void copy_matrix(Matrix source, Matrix dest);
 void addition_multiplication(Matrix m, unsigned int i, unsigned int j, E k);
 void triangulariser(Matrix m);
-void inversion_gauss(Matrix m);
+Matrix inversion_gauss(Matrix m);
 PLU decomposition_PLU(Matrix m);
 E * valeurs_propres(Matrix m);
 

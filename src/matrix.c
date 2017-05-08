@@ -4,19 +4,8 @@
 #include <string.h>
 #include <unistd.h>
 #include "system.h"
+#include "matrix.h"
 
-typedef float E;
-typedef struct matrix {
-    E * mat;
-    unsigned int nb_rows;
-    unsigned int nb_columns;
-} * Matrix;
-
-typedef struct {
-    Matrix P;
-    Matrix L;
-    Matrix U;
-} PLU;
 
 // Permet de générer une nouvelle matrice
 Matrix newMatrix(unsigned int nb_rows, unsigned int nb_columns) {
@@ -63,6 +52,12 @@ void copy_matrix(Matrix source, Matrix dest) {
             setElt(dest, i, j, getElt(source, i, j));
         }
     }
+}
+
+Matrix new_matrix_copy(Matrix m) {
+    Matrix r = newMatrix(m->nb_rows, m->nb_columns);
+    copy_matrix(m, r);
+    return r;
 }
 
 // Teste si une matrice est carré
@@ -240,9 +235,7 @@ E det(Matrix m) {
 Matrix inversion(Matrix m) {
     int i, j;
 
-    if (!det(m)) {
-        return NULL;
-    }
+    if (!det(m)) return NULL;
 
     Matrix inverse = newMatrix(m->nb_rows, m->nb_columns);
     for (i = 0; i < (int) m->nb_rows; i++) {
@@ -290,8 +283,7 @@ void addition_multiplication(Matrix m, unsigned int i, unsigned int j, E k) {
     unsigned int n;
     Matrix m1, m2 = newMatrix(m->nb_rows, m->nb_columns);
     for (n = 0; n < m->nb_columns; n++){
-        E tmp = getElt(m, j, n);
-        setElt(m2, i, n, tmp);
+        setElt(m2, i, n, getElt(m, j, n));
     }
     multiplier_ligne(m2, i, k);
     m1 = addition(m, m2);
@@ -337,41 +329,115 @@ E m_determinant(Matrix m) {
     return determinant;
 }
 
-void inversion_gauss(Matrix m) {
+// prec : La matrice doit être carrée
+Matrix inversion_gauss(Matrix in) {
 
-    unsigned int i, j;
-    E k;
-
-    if (!isSquare(m)) {
-        fprintf(stderr, "La matrice n'est pas carrée\n");
-        exit(EXIT_FAILURE);
+    Matrix m = new_matrix_copy(in);
+    int inversible = 1;
+    int k,i,colonne,colonnebis;
+    float var,var1;
+    k=0;
+    while((inversible == 1)&&(k < (int) m->nb_rows)) {
+        if (getElt(m, k, k) != 0) {
+            var = getElt(m, k, k);
+            for (colonne=0;colonne < 2 * ((int) m->nb_rows);colonne++)
+            {
+                // Normalisation de la ligne contenant l'élément diagonal
+                setElt(m, k, colonne, getElt(m, k, colonne)/var);
+            }
+            for (i=0;i < (int) m->nb_rows;i++)
+            {
+                if (i != k)
+                {
+                    var1=getElt(m, i, k);
+                    for (colonnebis=0;colonnebis < 2 * ((int) m->nb_columns); colonnebis++)
+                    {
+                        setElt(m, i, colonnebis, getElt(m, i, colonnebis) - getElt(m, k, colonnebis)*var1);
+                    }
+                }
+            }
+            k++;
+        } else inversible = 0;
     }
-
-    Matrix id = matrix_identite(m->nb_rows);
-
-    for (i = 0; i < m->nb_rows-1; i++) {
-        for (j = i+1; j < m->nb_rows; j++) {
-            k = -getElt(m, j, i) / getElt(m, i, i);
-            addition_multiplication(m, j, i, k);
-            addition_multiplication(id, j, i, k);
-        }
-    }
-
-
-
-    printf("\n\n\nINVERSION DE LA MATRICE AVEC ALGO DE GAUSS\n");
-    printMatrix(id);
-
-    for (i = 0; i < m->nb_rows-1; i++) {
-        multiplier_ligne(m, i, 1/getElt(m, i, i));
-        multiplier_ligne(id, i, 1/getElt(id, i, i));
-    }
-
-
-    printf("\n\n\nINVERSION DE LA MATRICE AVEC ALGO DE GAUSS\n");
-    printMatrix(id);
-
+    return m;
 }
+
+// Matrix inversion_gauss(Matrix m) {
+
+//     unsigned int i, j;
+//     E k;
+
+//     Matrix id = matrix_identite(m->nb_rows);
+//     Matrix r = new_matrix_copy(m);
+
+//     for (i = 0; i < r->nb_rows-1; i++) {
+//         for (j = i+1; j < r->nb_rows; j++) {
+//             k = -getElt(r, j, i) / getElt(r, i, i);
+//             addition_multiplication(r, j, i, k);
+//             addition_multiplication(id, j, i, k);
+//         }
+//     }
+
+
+
+//     printf("\n\n\nINVERSION DE LA MATRICE AVEC ALGO DE GAUSS\n");
+//     printMatrix(r);
+
+
+//     for (i = 0; i < r->nb_rows-1; i++) {
+//         for (j = i+1; j < r->nb_rows; j++) {
+//             k = -getElt(r, j, i) / getElt(r, i, i);
+//             addition_multiplication(r, j, i, k);
+//             addition_multiplication(id, j, i, k);
+//         }
+//     }
+
+//     k = 1/getElt(r, r->nb_rows-1, r->nb_rows-1);
+//     multiplier_ligne(r, r->nb_rows-1, k);
+//     multiplier_ligne(id, r->nb_rows-1, k);
+
+//     // if (r->nb_rows >= 2) {
+//     //     for (j = r->nb_rows-1; (int) j >= 0; j--) {
+//     //         for (i = r->nb_rows-2; (int) i >= 0; i--) {
+//     //             k = -getElt(r, i, j);
+//     //             addition_multiplication(r, i, j, k);
+//     //             addition_multiplication(id, i, j, k);
+//     //             printf("%d %d %f\n", i, j, k);
+//     //         }
+//     //         k = 1/getElt(r, j, j);
+//     //         multiplier_ligne(r, j, k);
+//     //         multiplier_ligne(id, j, k);
+//     //     }
+//     // }
+
+//     j = r->nb_rows-1;
+//     for (i = r->nb_rows-2; (int) i >= 0; i--) {
+//         k = -getElt(r, i, j);
+//         addition_multiplication(r, i, j, k);
+//         addition_multiplication(id, i, j, k);
+//         printf("%d %d %f\n", i, j, k);
+//     }
+//     k = 1/getElt(r, j, j);
+//     multiplier_ligne(r, j, k);
+//     multiplier_ligne(id, j, k);
+//     j = r->nb_rows-2;
+//     for (i = r->nb_rows-2; (int) i >= 0; i--) {
+//         k = -getElt(r, i, j);
+//         addition_multiplication(r, j, i, k);
+//         addition_multiplication(id, i, j, k);
+//         printf("%d %d %f\n", i, j, k);
+//     }
+//     k = 1/getElt(r, j, j);
+//     multiplier_ligne(r, j, k);
+//     multiplier_ligne(id, j, k);
+
+
+//     printf("\n\n\nINVERSION DE LA MATRICE AVEC ALGO DE GAUSS\n");
+//     printMatrix(r);
+
+//     return id;
+
+// }
 
 PLU decomposition_PLU(Matrix m) {
     Matrix P = matrix_identite(m->nb_rows);

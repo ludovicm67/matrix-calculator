@@ -76,10 +76,7 @@ mpc_val_t* ident_to_expr(int n, mpc_val_t ** xs) {
         if (!strcmp(env->symbol, name)) {
             memcpy(e, env->e, sizeof(struct s_expression));
             if (env->e->type == MATRIX) {
-                e->c.m = newMatrix(env->e->c.a->e->c.m->nb_rows, env->e->c.a->e->c.m->nb_columns);
-                memcpy(e->c.m, env->e->c.a->e->c.m, sizeof(struct matrix));
-                e->c.m->mat = malloc((env->e->c.a->e->c.m->nb_rows * env->e->c.a->e->c.m->nb_columns * sizeof(E)));
-                memcpy(e->c.m->mat, env->e->c.a->e->c.m->mat, (env->e->c.a->e->c.m->nb_rows * env->e->c.a->e->c.m->nb_columns * sizeof(E)));
+                e->c.m = new_matrix_copy(env->e->c.m);
             }
         }
         env = env->next;
@@ -135,6 +132,19 @@ mpc_val_t* call_to_expr(int n, mpc_val_t ** xs) {
                     e->type = MATRIX;
                     e->c.m = transpose(param->c.m);
                     deleteMatrix(param->c.m);
+                }
+            }
+
+            else if (!strcmp(name, "inv")) {
+                if (param->type == MATRIX) {
+                    if (!isSquare(param->c.m)) {
+                        e->type = ERROR;
+                        e->c.str = "La matrice doit être carrée !";
+                    } else {
+                        e->type = MATRIX;
+                        e->c.m = inversion_gauss(param->c.m);
+                        // deleteMatrix(param->c.m);
+                    }
                 }
             }
 
@@ -473,10 +483,11 @@ void run_parser() {
                     new_assign->e = new_expression();
                     memcpy(new_assign->e, e->c.a->e, sizeof(struct s_expression));
                     if (e->c.a->e->type == MATRIX) {
-                        new_assign->e->c.m = newMatrix(e->c.a->e->c.m->nb_rows, e->c.a->e->c.m->nb_columns);
-                        memcpy(new_assign->e->c.m, e->c.a->e->c.m, sizeof(struct matrix));
-                        new_assign->e->c.m->mat = malloc((e->c.a->e->c.m->nb_rows * e->c.a->e->c.m->nb_columns * sizeof(E)));
-                        memcpy(new_assign->e->c.m->mat, e->c.a->e->c.m->mat, (e->c.a->e->c.m->nb_rows * e->c.a->e->c.m->nb_columns * sizeof(E)));
+                        new_assign->e->c.m = new_matrix_copy(e->c.a->e->c.m);
+                        // new_assign->e->c.m = newMatrix(e->c.a->e->c.m->nb_rows, e->c.a->e->c.m->nb_columns);
+                        // memcpy(new_assign->e->c.m, e->c.a->e->c.m, sizeof(struct matrix));
+                        // new_assign->e->c.m->mat = malloc((e->c.a->e->c.m->nb_rows * e->c.a->e->c.m->nb_columns * sizeof(E)));
+                        // memcpy(new_assign->e->c.m->mat, e->c.a->e->c.m->mat, (e->c.a->e->c.m->nb_rows * e->c.a->e->c.m->nb_columns * sizeof(E)));
                     }
                     new_assign->next = NULL;
                     environnement->next = new_assign;
