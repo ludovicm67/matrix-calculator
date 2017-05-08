@@ -65,6 +65,11 @@ int isSquare(Matrix m) {
     return m->nb_rows == m->nb_columns;
 }
 
+// Teste si deux matrices sont de même dimension
+int sameSize(Matrix a, Matrix b) {
+    return a->nb_rows == b->nb_rows && a->nb_columns == b->nb_columns;
+}
+
 // Teste si une matrice est triangulaire
 int isTriangulaire(Matrix m) {
     unsigned int ligne, col;

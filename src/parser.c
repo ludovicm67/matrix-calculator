@@ -74,6 +74,7 @@ mpc_val_t* ident_to_expr(int n, mpc_val_t ** xs) {
 
     while (env) {
         if (!strcmp(env->symbol, name)) {
+            if (e->type == MATRIX) deleteMatrix(e->c.m);
             memcpy(e, env->e, sizeof(struct s_expression));
             if (env->e->type == MATRIX) {
                 e->c.m = new_matrix_copy(env->e->c.m);
@@ -169,7 +170,15 @@ mpc_val_t *fold_sum(int n, mpc_val_t ** xs) {
 
     for (i = 1; i < n; i++) {
         if (e[0]->type == MATRIX && e[i]->type == MATRIX) {
-            e[0]->c.m = addition(e[0]->c.m, e[i]->c.m);
+            if(sameSize(e[0]->c.m, e[i]->c.m)) {
+                e[0]->c.m = addition(e[0]->c.m, e[i]->c.m);
+            } else {
+                e[0]->type = ERROR;
+                e[0]->c.str = "Les matrices doivent être de même dimensions.";
+            }
+        } else if ((e[0]->type == MATRIX && e[i]->type == SCALAR) || (e[0]->type == SCALAR && e[i]->type == MATRIX)) {
+            e[0]->type = ERROR;
+            e[0]->c.str = "Impossible d'additioner un scalaire avec une matrice.";
         } else {
             e[0]->c.s += e[i]->c.s;
         }
@@ -357,6 +366,10 @@ void catch_segfault(int signum) {
 void free_env(assign env) {
     if (!env) return;
     if (env->next) free_env(env->next);
+    if (env->e) {
+        if (env->e->type == MATRIX) deleteMatrix(env->e->c.m);
+        free(env->e);
+    }
     free(env);
 }
 
