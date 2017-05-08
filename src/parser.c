@@ -50,17 +50,27 @@ Expression new_expression() {
     return e;
 }
 
+Expression new_expression_error(char * msg) {
+    Expression e = new_expression();
+    e->type = ERROR;
+    e->c.str = msg;
+    return e;
+}
+
 mpc_val_t* val_to_expr(mpc_val_t* val) {
     Expression e = new_expression();
     e->type = SCALAR;
     e->c.s = *(float *) val;
+    free(val);
     return e;
 }
 
 mpc_val_t* ident_to_expr(mpc_val_t* val) {
-    Expression e = new_expression();
-    e->type = IDENT;
-    e->c.str = (char *) val;
+    // char * name = (char *) val;
+    Expression e = new_expression_error("variable inconnue");
+
+    free(val);
+
     return e;
 }
 
@@ -85,7 +95,17 @@ mpc_val_t* call_to_expr(int n, mpc_val_t ** xs) {
                     e->c.s = det(param->c.m);
                 }
             }
+
+            else if (!strcmp(name, "tr")) {
+                if (param->type == MATRIX) {
+                    e->type = MATRIX;
+                    e->c.m = transpose(param->c.m);
+                    deleteMatrix(param->c.m);
+                }
+            }
+
         }
+
     }
 
     return e;
@@ -98,8 +118,9 @@ mpc_val_t *fold_sum(int n, mpc_val_t ** xs) {
 
     // valeur par défaut
     if (!n) {
-        float zero = 0;
-        return val_to_expr(&zero);
+        Expression e = new_expression();
+        e->c.s = 0;
+        return e;
     }
 
     for (i = 1; i < n; i++) {
@@ -117,17 +138,27 @@ mpc_val_t *fold_sum(int n, mpc_val_t ** xs) {
 mpc_val_t *fold_prod(int n, mpc_val_t ** xs) {
     int i;
     Expression * e = (Expression *) xs;
+    Matrix m;
 
     // valeur par défaut
     if (!n) {
-        float one = 1;
-        return val_to_expr(&one);
+        Expression e = new_expression();
+        e->c.s = 1;
+        return e;
     }
 
     for (i = 1; i < n; i++) {
         if (e[0]->type == MATRIX && e[i]->type == MATRIX) {
             e[0]->c.m = multiplication(e[0]->c.m, e[i]->c.m);
-        } else {
+        } else if (e[0]->type == SCALAR && e[i]->type == MATRIX) {
+            e[0]->type = MATRIX;
+            e[0]->c.m = mult_scalar(e[0]->c.s, e[i]->c.m);
+            deleteMatrix(e[i]->c.m);
+        } else if (e[0]->type == MATRIX && e[i]->type == SCALAR) {
+            m = mult_scalar(e[i]->c.s, e[0]->c.m);
+            deleteMatrix(e[0]->c.m);
+            e[0]->c.m = m;
+        } else if (e[0]->type == SCALAR && e[i]->type == SCALAR) {
             e[0]->c.s *= e[i]->c.s;
         }
         free(xs[i]);
@@ -286,16 +317,20 @@ void run_parser() {
 
     mpc_parser_t *Expr     = mpc_new("expression");
     mpc_parser_t *Prod     = mpc_new("product");
-    mpc_parser_t *Constant = mpc_apply(mpc_re("-?([0-9]*\\.[0-9]+|[0-9]+\\.?)"), mpcf_float);
+    mpc_parser_t *Constant = mpc_new("constant");
     mpc_parser_t *Value    = mpc_new("value");
     mpc_parser_t *Line     = mpc_new("line");
     mpc_parser_t *Input    = mpc_new("input");
-    mpc_parser_t *Ident    = mpc_ident();
+    mpc_parser_t *Ident    = mpc_new("ident");
     mpc_parser_t *Assign   = mpc_new("assign");
     mpc_parser_t *Mat      = mpc_new("mat");
     mpc_parser_t *MatRow   = mpc_new("mat-row");
     mpc_parser_t *Row      = mpc_new("row");
     mpc_parser_t *Call     = mpc_new("call");
+
+    mpc_define(Ident, mpc_ident());
+
+    mpc_define(Constant, mpc_apply(mpc_re("-?([0-9]*\\.[0-9]+|[0-9]+\\.?)"), mpcf_float));
 
     mpc_define(Expr, mpc_and(2, fold_sum,
         Prod, mpc_many(fold_sum, mpc_and(2, fold_value,
@@ -340,7 +375,7 @@ void run_parser() {
         free
     ));
 
-    mpc_define(Value, mpc_strip(mpc_or(4,
+    mpc_define(Value, mpc_strip(mpc_or(5,
         Call,
         mpc_apply(Ident, ident_to_expr),
         mpc_apply(Constant, val_to_expr),
@@ -354,19 +389,18 @@ void run_parser() {
 
     mpc_define(Input, mpc_whole(Line, free));
 
-    // mpca_lang(MPCA_LANG_DEFAULT,
-    //ok    " expression      : <product> (('+' | '-') <product>)*;                                \n"
-    //ok    " product         : <value>   (('*' | '/')   <value>)*;                                \n"
-    //ok    " constant        : /-?([0-9]*\\.[0-9]+|[0-9]+\\.?)/;                                  \n"
-    //ok    " assign          : <ident> '=' <expression>;                                          \n"
-    //ok    " ident           : /[A-Za-z_][A-Za-z_0-9]*/;                                          \n"
-    //ok  " row             : <expression> (',' <expression>)*;                                  \n"
-    //ok  " mat             : '[' <row> (';' <row>)* ']';                                        \n"
-    //  " value           : <constant> | <mat> | '(' <expression> ')' | <call> | <ident>;      \n"
-    //  " call            : <ident> '(' (<expression> (',' <expression>)*)? ')';               \n"
-    //ok    " line            : <assign> | <expression>;                                           \n"
-    //ok    " input           : /^/ <line> /$/;                                                    \n",
-    // Expr, Prod, Value, Call, Ident, Constant, Assign, Line, Input, Row, Mat, NULL);
+    mpc_optimise(Expr);
+    mpc_optimise(Prod);
+    mpc_optimise(Value);
+    mpc_optimise(Call);
+    mpc_optimise(Ident);
+    mpc_optimise(Constant);
+    mpc_optimise(Assign);
+    mpc_optimise(Line);
+    mpc_optimise(Input);
+    mpc_optimise(Row);
+    mpc_optimise(Mat);
+    mpc_optimise(MatRow);
 
 
     mpc_result_t r;
@@ -377,7 +411,7 @@ void run_parser() {
 
     if (is_tty) printf("\033[1;34m>>> \033[0m");
     while ((getline(&line, &len, stdin)) != -1) {
-        line[strcspn(line, "\r\n")] = 0;
+        line[strcspn(line, "\r\n#")] = 0;
 
         if (strlen(line) > 0) {
             if (mpc_parse("input", line, Input, &r)) {
@@ -398,18 +432,7 @@ void run_parser() {
 
     if (line) free(line);
 
-    mpc_delete(Expr);
-    mpc_delete(Prod);
-    mpc_delete(Value);
-    mpc_delete(Call);
-    mpc_delete(Ident);
-    mpc_delete(Constant);
-    mpc_delete(Assign);
-    mpc_delete(Line);
-    mpc_delete(Input);
-    mpc_delete(Row);
-    mpc_delete(Mat);
-    mpc_delete(MatRow);
+    mpc_cleanup(12, Assign, Call, Constant, Ident, Expr, Prod, Value, Line, Input, Row, Mat, MatRow);
 
     if (is_tty) printf("\n\033[1mAu revoir ! :)\033[0m\n"); // convivialité !
 }

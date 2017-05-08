@@ -48,6 +48,7 @@ typedef struct s_expression {
 
 void print_expression(Expression e);
 Expression new_expression();
+Expression new_expression_error(char * msg);
 mpc_val_t* val_to_expr(mpc_val_t* val);
 mpc_val_t* ident_to_expr(mpc_val_t* val);
 mpc_val_t *fold_sum(int n, mpc_val_t ** xs);

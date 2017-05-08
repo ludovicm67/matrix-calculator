@@ -20,7 +20,7 @@ typedef struct {
 
 // Permet de générer une nouvelle matrice
 Matrix newMatrix(unsigned int nb_rows, unsigned int nb_columns) {
-    Matrix m = malloc(sizeof(Matrix));
+    Matrix m = malloc(sizeof(struct matrix));
     if (!m) {
         print_error("Cannot allocate memory for the matrix");
         exit(EXIT_FAILURE);
@@ -87,13 +87,14 @@ int isSymetric(Matrix m) {
 
 // Retourne la transposée de la matrice
 Matrix transpose(Matrix m) {
+
     unsigned int i, j;
 
     Matrix r = newMatrix(m->nb_columns, m->nb_rows);
 
     for (i = 0; i < m->nb_rows; i++) {
         for (j = 0; j < m->nb_columns; j++) {
-            setElt(r, i, j, getElt(m, j, i));
+            setElt(r, j, i, getElt(m, i, j));
         }
     }
 
@@ -149,11 +150,16 @@ Matrix addition(Matrix m1, Matrix m2) {
 }
 
 // Multiplie une matrice par un scalaire
-void mult_scalar(E s, Matrix m) {
+Matrix mult_scalar(E s, Matrix m) {
+    Matrix r = newMatrix(m->nb_rows, m->nb_columns);
     unsigned int i;
+
+    copy_matrix(m, r);
     for (i = 0; i < m->nb_rows * m->nb_columns; i++) {
-        m->mat[i] *= s;
+        r->mat[i] *= s;
     }
+
+    return r;
 }
 
 // Permet d'effectuer la multiplicaton de deux matrices

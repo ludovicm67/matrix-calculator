@@ -25,7 +25,7 @@ Matrix transpose(Matrix m);
 void printMatrix(Matrix m);
 Matrix matrix_identite(unsigned int n);
 Matrix addition(Matrix m1, Matrix m2);
-void mult_scalar(E s, Matrix m);
+Matrix mult_scalar(E s, Matrix m);
 Matrix multiplication(Matrix a, Matrix b);
 Matrix extraction(Matrix m, unsigned int row, unsigned int column);
 E det(Matrix m);
