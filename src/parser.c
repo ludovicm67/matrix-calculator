@@ -20,6 +20,7 @@ void print_expression(Expression e) {
             break;
         case MATRIX:
             printMatrix(e->c.m);
+            deleteMatrix(e->c.m);
             break;
         case SCALAR:
             printf("%f\n", e->c.s);
@@ -29,10 +30,10 @@ void print_expression(Expression e) {
             printf("...mais la variable '%s' aura pour valeur '%f'\n", e->c.a.symbol, e->c.a.e->c.s);
             break;
         case IDENT:
-            print_error("IDENT pas encore défini !");
+            print_error("Undefined variable");
             break;
         case CALL:
-            print_error("CALL not defined");
+            print_error("Undefined function");
             break;
         default:
             print_error("Unknown expression type");
