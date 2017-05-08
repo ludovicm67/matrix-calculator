@@ -7,10 +7,8 @@
 typedef struct s_assign {
     char * symbol;
     struct s_expression * e;
-    struct s_assign * prev;
-} assign;
-
-extern assign env;
+    struct s_assign * next;
+} * assign;
 
 // ligne d'une matrice
 typedef struct s_matrix_row {
@@ -50,7 +48,7 @@ void print_expression(Expression e);
 Expression new_expression();
 Expression new_expression_error(char * msg);
 mpc_val_t* val_to_expr(mpc_val_t* val);
-mpc_val_t* ident_to_expr(mpc_val_t* val);
+mpc_val_t* ident_to_expr(int n, mpc_val_t ** xs);
 mpc_val_t *fold_sum(int n, mpc_val_t ** xs);
 mpc_val_t *fold_prod(int n, mpc_val_t ** xs);
 mpc_val_t *fold_assign(int n, mpc_val_t ** xs);

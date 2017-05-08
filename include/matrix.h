@@ -20,6 +20,7 @@ E getElt(Matrix m, unsigned int row, unsigned int column);
 void setElt(Matrix m, unsigned int row, unsigned int column, E val);
 void deleteMatrix(Matrix m);
 int isSquare(Matrix m);
+int isTriangulaire(Matrix m);
 int isSymetric(Matrix m);
 Matrix transpose(Matrix m);
 void printMatrix(Matrix m);

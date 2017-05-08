@@ -26,8 +26,8 @@ void print_expression(Expression e) {
             printf("%f\n", e->c.s);
             break;
         case ASSIGN:
-            print_error("ASSIGN pas encore fait");
-            printf("...mais la variable '%s' aura pour valeur '%f'\n", e->c.a.symbol, e->c.a.e->c.s);
+            printf("La variable '%s' vaut désormais :\n", e->c.a->symbol);
+            print_expression(e->c.a->e);
             break;
         case IDENT:
             print_error("Undefined variable");
@@ -65,11 +65,28 @@ mpc_val_t* val_to_expr(mpc_val_t* val) {
     return e;
 }
 
-mpc_val_t* ident_to_expr(mpc_val_t* val) {
-    // char * name = (char *) val;
-    Expression e = new_expression_error("variable inconnue");
+mpc_val_t* ident_to_expr(int n, mpc_val_t ** xs) {
+    (void) n;
+    char * name = (char *) xs[0];
+    assign env = (assign) xs[1];
 
-    free(val);
+    Expression e = new_expression();
+
+    while (env) {
+        if (!strcmp(env->symbol, name)) {
+            memcpy(e, env->e, sizeof(struct s_expression));
+            if (env->e->type == MATRIX) {
+                e->c.m = newMatrix(env->e->c.a->e->c.m->nb_rows, env->e->c.a->e->c.m->nb_columns);
+                memcpy(e->c.m, env->e->c.a->e->c.m, sizeof(struct matrix));
+                e->c.m->mat = malloc((env->e->c.a->e->c.m->nb_rows * env->e->c.a->e->c.m->nb_columns * sizeof(E)));
+                memcpy(e->c.m->mat, env->e->c.a->e->c.m->mat, (env->e->c.a->e->c.m->nb_rows * env->e->c.a->e->c.m->nb_columns * sizeof(E)));
+            }
+        }
+        env = env->next;
+    }
+
+    if (e->type == UNKNOWN) e = new_expression_error("variable inconnue");
+
 
     return e;
 }
@@ -91,8 +108,25 @@ mpc_val_t* call_to_expr(int n, mpc_val_t ** xs) {
 
             else if (!strcmp(name, "det")) {
                 if (param->type == MATRIX) {
-                    e->type = SCALAR;
-                    e->c.s = det(param->c.m);
+                    if (!isSquare(param->c.m)) {
+                        e->type = ERROR;
+                        e->c.str = "La matrice doit être carrée !";
+                    } else {
+                        e->type = SCALAR;
+                        e->c.s = det(param->c.m);
+                    }
+                }
+            }
+
+            else if (!strcmp(name, "det_tri")) {
+                if (param->type == MATRIX) {
+                    if (!isSquare(param->c.m)) {
+                        e->type = ERROR;
+                        e->c.str = "La matrice doit être carrée !";
+                    } else {
+                        e->type = SCALAR;
+                        e->c.s = m_determinant(param->c.m);
+                    }
                 }
             }
 
@@ -173,8 +207,9 @@ mpc_val_t *fold_assign(int n, mpc_val_t ** xs) {
 
     Expression assign = new_expression();
     assign->type = ASSIGN;
-    assign->c.a.e = e;
-    assign->c.a.symbol = name;
+    assign->c.a = malloc(sizeof(struct s_assign));
+    assign->c.a->e = e;
+    assign->c.a->symbol = name;
 
     (void) n;
 
@@ -309,8 +344,24 @@ void catch_segfault(int signum) {
     exit(EXIT_FAILURE);
 }
 
+void free_env(assign env) {
+    if (!env) return;
+    if (env->next) free_env(env->next);
+    free(env);
+}
+
+
 void run_parser() {
     signal(SIGSEGV, catch_segfault);
+
+    assign environnement = malloc(sizeof(struct s_assign));
+    environnement->symbol = "pi";
+    environnement->e = new_expression();
+    environnement->e->type = SCALAR;
+    environnement->e->c.s = 3.141593;
+    environnement->next = NULL;
+
+    Expression e;
 
     int is_tty = isatty(0);
     if (is_tty) printf("\033[1mBonjour !\033[0m\n"); // convivialité !
@@ -377,7 +428,7 @@ void run_parser() {
 
     mpc_define(Value, mpc_strip(mpc_or(5,
         Call,
-        mpc_apply(Ident, ident_to_expr),
+        mpc_and(2, ident_to_expr, Ident, mpc_lift_val(environnement), free),
         mpc_apply(Constant, val_to_expr),
         Mat,
         mpc_parens(Expr, free)
@@ -415,6 +466,21 @@ void run_parser() {
 
         if (strlen(line) > 0) {
             if (mpc_parse("input", line, Input, &r)) {
+                e = (Expression) r.output;
+                if (e->type == ASSIGN) {
+                    assign new_assign = malloc(sizeof(struct s_assign));
+                    new_assign->symbol = e->c.a->symbol;
+                    new_assign->e = new_expression();
+                    memcpy(new_assign->e, e->c.a->e, sizeof(struct s_expression));
+                    if (e->c.a->e->type == MATRIX) {
+                        new_assign->e->c.m = newMatrix(e->c.a->e->c.m->nb_rows, e->c.a->e->c.m->nb_columns);
+                        memcpy(new_assign->e->c.m, e->c.a->e->c.m, sizeof(struct matrix));
+                        new_assign->e->c.m->mat = malloc((e->c.a->e->c.m->nb_rows * e->c.a->e->c.m->nb_columns * sizeof(E)));
+                        memcpy(new_assign->e->c.m->mat, e->c.a->e->c.m->mat, (e->c.a->e->c.m->nb_rows * e->c.a->e->c.m->nb_columns * sizeof(E)));
+                    }
+                    new_assign->next = NULL;
+                    environnement->next = new_assign;
+                }
                 print_expression(r.output);
                 free(r.output);
             } else {
@@ -422,7 +488,6 @@ void run_parser() {
                 printf("%*s", (int) (is_tty ? r.error->state.col+4 : r.error->state.col), "");
                 printf("\033[1;31m^\033[0m\n");
                 print_error(err_msg_only(r.error));
-
                 mpc_err_delete(r.error);
             }
         }
@@ -433,6 +498,8 @@ void run_parser() {
     if (line) free(line);
 
     mpc_cleanup(12, Assign, Call, Constant, Ident, Expr, Prod, Value, Line, Input, Row, Mat, MatRow);
+
+    free_env(environnement);
 
     if (is_tty) printf("\n\033[1mAu revoir ! :)\033[0m\n"); // convivialité !
 }

@@ -70,6 +70,17 @@ int isSquare(Matrix m) {
     return m->nb_rows == m->nb_columns;
 }
 
+// Teste si une matrice est triangulaire
+int isTriangulaire(Matrix m) {
+    unsigned int ligne, col;
+    for (ligne = 1; ligne < m->nb_rows; ligne++) {
+        for (col = 0; col < ligne; col++) {
+            if (getElt(m, ligne, col) != 0) return 0;
+        }
+    }
+    return 1;
+}
+
 // Teste si une matrice est symétrique
 int isSymetric(Matrix m) {
     unsigned int i, j, n = 0;
@@ -275,23 +286,6 @@ void permuter_ligne(Matrix m, unsigned int i, unsigned int j) {
     } else return;
 }
 
-// prec : m doit être triangulariser
-E m_determinant(Matrix m) {
-    unsigned int i;
-    E determinant = 1;
-
-    if (!isSquare(m)) {
-        fprintf(stderr, "La matrice n'est pas carrée\n");
-        exit(EXIT_FAILURE);
-    }
-
-    for (i = 0; i < m->nb_rows; i++) {
-        determinant *= getElt(m, i, i);
-    }
-
-    return determinant;
-}
-
 void addition_multiplication(Matrix m, unsigned int i, unsigned int j, E k) {
     unsigned int n;
     Matrix m1, m2 = newMatrix(m->nb_rows, m->nb_columns);
@@ -324,6 +318,23 @@ void triangulariser(Matrix m) {
         }
     }
 
+}
+
+// calcul du déterminant avec matrice triangulaire sup.
+// prec : m doit être carrée
+E m_determinant(Matrix m) {
+    unsigned int i;
+    E determinant = 1;
+
+    if (!isTriangulaire(m)) {
+        triangulariser(m);
+    }
+
+    for (i = 0; i < m->nb_rows; i++) {
+        determinant *= getElt(m, i, i);
+    }
+
+    return determinant;
 }
 
 void inversion_gauss(Matrix m) {
