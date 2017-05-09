@@ -339,15 +339,15 @@ E m_determinant(Matrix m) {
 }
 
 // prec : La matrice doit être carrée
-Matrix inversion_gauss(Matrix m) {
+/*Matrix inversion_gauss(Matrix m) {
 
     unsigned int i, j;
     E k;
 
     if (!m_determinant(m)) return NULL;
 
-printf("Matrice entée :\n");
-printMatrix(m);
+    printf("Matrice entrée :\n");
+    printMatrix(m);
 
     Matrix id = matrix_identite(m->nb_rows);
     Matrix r = new_matrix_copy(m);
@@ -366,10 +366,10 @@ printMatrix(m);
     multiplier_ligne(r, r->nb_rows-1, k);
     multiplier_ligne(id, r->nb_rows-1, k);
 
-printf("Matrice après trig :\n");
-printMatrix(m);
-printf("Matrice id après trig :\n");
-printMatrix(id);
+    printf("Matrice après trig :\n");
+    printMatrix(m);
+    printf("Matrice id après trig :\n");
+    printMatrix(id);
     // addition_multiplication(r, r->nb_rows-1, r->nb_rows-1, k);
     // addition_multiplication(id, r->nb_rows-1, r->nb_rows-1, k);
 
@@ -413,7 +413,44 @@ printMatrix(id);
     printMatrix(r);
 
     return id;
+}*/
 
+Matrix inversion_gauss(Matrix m) {
+    unsigned int i, j, k, l, h;
+    int a = 0;
+    E diagonale = 0, coefficient = 0;
+    Matrix tmp1 = newMatrix(m->nb_rows, m->nb_columns);
+    copy_matrix(m, tmp1);
+    Matrix tmp2 = matrix_identite(m->nb_rows);
+
+    for(h = 0; h < m->nb_rows; h++) {
+        diagonale = getElt(tmp1, h, h);
+        a = 0;
+        while(abs(diagonale) < 0.0000000000000001) {
+            a++;
+            for (i = 0; i < m->nb_rows; i++) {
+                setElt (tmp1, h, i, getElt(tmp1, h, i) + getElt(tmp1, h + a, i));
+                setElt (tmp2, h, i, getElt(tmp2, h, i) + getElt(tmp2, h + a, i));
+            }
+            diagonale = getElt(tmp1, h, h);
+        }
+
+        for(j = 0; j < m->nb_rows; j++) {
+            setElt(tmp1, h, j, getElt(tmp1, h, j) / diagonale);
+            setElt(tmp2, h, j, getElt(tmp2, h, j) / diagonale);
+        }
+
+        for(k = 0; k < m->nb_rows; k++) {
+            coefficient = getElt(tmp1, k, h);
+            if(k != h) {
+                for(l = 0; l < m->nb_rows; l++) {
+                    setElt(tmp1, k, l, getElt(tmp1, k, l) - coefficient * getElt(tmp1, h, l));
+                    setElt(tmp2, k, l, getElt(tmp2, k, l) - coefficient * getElt(tmp2, h, l));
+                }
+            }
+        }
+    }
+    return tmp2;
 }
 
 PLU decomposition_PLU(Matrix m) {
