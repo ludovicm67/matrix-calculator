@@ -35,6 +35,8 @@ void print_expression(Expression e) {
         case CALL:
             print_error("Undefined function");
             break;
+        case NOTHING:
+            break;
         default:
             print_error("Unknown expression type");
     }
@@ -142,10 +144,70 @@ mpc_val_t* call_to_expr(int n, mpc_val_t ** xs) {
                         e->type = ERROR;
                         e->c.str = "La matrice doit être carrée !";
                     } else {
-                        e->type = MATRIX;
                         e->c.m = inversion(param->c.m);
-                        // deleteMatrix(param->c.m);
+                        if (!e->c.m) {
+                            e->type = ERROR;
+                            e->c.str = "La matrice n'est pas inversible.";
+                        } else e->type = MATRIX;
                     }
+                    deleteMatrix(param->c.m);
+                }
+            }
+
+            else if (!strcmp(name, "invg")) {
+                if (param->type == MATRIX) {
+                    if (!isSquare(param->c.m)) {
+                        e->type = ERROR;
+                        e->c.str = "La matrice doit être carrée !";
+                    } else {
+                        e->c.m = inversion_gauss(param->c.m);
+                        if (!e->c.m) {
+                            e->type = ERROR;
+                            e->c.str = "La matrice n'est pas inversible.";
+                        } else e->type = MATRIX;
+                    }
+                    deleteMatrix(param->c.m);
+                }
+            }
+
+            else if (!strcmp(name, "plu")) {
+                if (param->type == MATRIX) {
+                    m_PLU(param->c.m);
+                    e->type = NOTHING;
+                    deleteMatrix(param->c.m);
+                }
+            }
+
+            else if (!strcmp(name, "plu_p")) {
+                if (param->type == MATRIX) {
+                    e->c.m = m_PLU_p(param->c.m);
+                    if (!e->c.m) {
+                        e->type = ERROR;
+                        e->c.str = "Aucune matrice P trouvée.";
+                    } else e->type = MATRIX;
+                    deleteMatrix(param->c.m);
+                }
+            }
+
+            else if (!strcmp(name, "plu_l")) {
+                if (param->type == MATRIX) {
+                    e->c.m = m_PLU_l(param->c.m);
+                    if (!e->c.m) {
+                        e->type = ERROR;
+                        e->c.str = "Aucune matrice P trouvée.";
+                    } else e->type = MATRIX;
+                    deleteMatrix(param->c.m);
+                }
+            }
+
+            else if (!strcmp(name, "plu_u")) {
+                if (param->type == MATRIX) {
+                    e->c.m = m_PLU_u(param->c.m);
+                    if (!e->c.m) {
+                        e->type = ERROR;
+                        e->c.str = "Aucune matrice P trouvée.";
+                    } else e->type = MATRIX;
+                    deleteMatrix(param->c.m);
                 }
             }
 
