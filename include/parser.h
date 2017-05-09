@@ -32,7 +32,8 @@ typedef struct s_expression {
         SCALAR,
         ASSIGN,
         IDENT,
-        CALL
+        CALL,
+        NOTHING
     } type;
     union {
         Matrix m;

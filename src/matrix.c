@@ -285,6 +285,7 @@ void permuter_ligne(Matrix m, unsigned int i, unsigned int j) {
     } else return;
 }
 
+// Une fonction permettant d’additionner à la ligne i le résultat de la multiplication de la ligne j par un facteur k
 void addition_multiplication(Matrix m, unsigned int i, unsigned int j, E k) {
     unsigned int n;
     Matrix m1, m2 = newMatrix(m->nb_rows, m->nb_columns);
@@ -299,7 +300,8 @@ void addition_multiplication(Matrix m, unsigned int i, unsigned int j, E k) {
     deleteMatrix(m2);
 }
 
-void triangulariser(Matrix m) {
+Matrix triangulariser(Matrix in) {
+    Matrix m = new_matrix_copy(in);
 
     unsigned int i, j;
     E k;
@@ -316,6 +318,7 @@ void triangulariser(Matrix m) {
         }
     }
 
+    return m;
 }
 
 // calcul du déterminant avec matrice triangulaire sup.
@@ -336,114 +339,82 @@ E m_determinant(Matrix m) {
 }
 
 // prec : La matrice doit être carrée
-Matrix inversion_gauss(Matrix in) {
+Matrix inversion_gauss(Matrix m) {
 
-    Matrix m = new_matrix_copy(in);
-    int inversible = 1;
-    int k,i,colonne,colonnebis;
-    float var,var1;
-    k=0;
-    while((inversible == 1)&&(k < (int) m->nb_rows)) {
-        if (getElt(m, k, k) != 0) {
-            var = getElt(m, k, k);
-            for (colonne=0;colonne < 2 * ((int) m->nb_rows);colonne++)
-            {
-                // Normalisation de la ligne contenant l'élément diagonal
-                setElt(m, k, colonne, getElt(m, k, colonne)/var);
-            }
-            for (i=0;i < (int) m->nb_rows;i++)
-            {
-                if (i != k)
-                {
-                    var1=getElt(m, i, k);
-                    for (colonnebis=0;colonnebis < 2 * ((int) m->nb_columns); colonnebis++)
-                    {
-                        setElt(m, i, colonnebis, getElt(m, i, colonnebis) - getElt(m, k, colonnebis)*var1);
-                    }
-                }
-            }
-            k++;
-        } else inversible = 0;
+    unsigned int i, j;
+    E k;
+
+    if (!m_determinant(m)) return NULL;
+
+printf("Matrice entée :\n");
+printMatrix(m);
+
+    Matrix id = matrix_identite(m->nb_rows);
+    Matrix r = new_matrix_copy(m);
+
+    // On commence par triangulariser la matice
+    for (i = 0; i < r->nb_rows-1; i++) {
+        for (j = i+1; j < r->nb_rows; j++) {
+            k = -getElt(r, j, i) / getElt(r, i, i);
+            addition_multiplication(r, j, i, k);
+            addition_multiplication(id, j, i, k);
+        }
     }
-    return m;
+
+
+    k = 1/getElt(r, r->nb_rows-1, r->nb_rows-1);
+    multiplier_ligne(r, r->nb_rows-1, k);
+    multiplier_ligne(id, r->nb_rows-1, k);
+
+printf("Matrice après trig :\n");
+printMatrix(m);
+printf("Matrice id après trig :\n");
+printMatrix(id);
+    // addition_multiplication(r, r->nb_rows-1, r->nb_rows-1, k);
+    // addition_multiplication(id, r->nb_rows-1, r->nb_rows-1, k);
+
+    // if (r->nb_rows >= 2) {
+    //     for (j = r->nb_rows-1; (int) j >= 0; j--) {
+    //         for (i = r->nb_rows-2; (int) i >= 0; i--) {
+    //             k = -getElt(r, i, j);
+    //             addition_multiplication(r, i, j, k);
+    //             addition_multiplication(id, i, j, k);
+    //             printf("%d %d %f\n", i, j, k);
+    //         }
+    //         k = 1/getElt(r, j, j);
+    //         multiplier_ligne(r, j, k);
+    //         multiplier_ligne(id, j, k);
+    //     }
+    // }
+
+    // j = r->nb_rows-1;
+    // for (i = r->nb_rows-2; (int) i >= 0; i--) {
+    //     k = -getElt(r, i, j);
+    //     addition_multiplication(r, i, j, k);
+    //     addition_multiplication(id, i, j, k);
+    //     printf("%d %d %f\n", i, j, k);
+    // }
+    // k = 1/getElt(r, j, j);
+    // multiplier_ligne(r, j, k);
+    // multiplier_ligne(id, j, k);
+    // j = r->nb_rows-2;
+    // for (i = r->nb_rows-2; (int) i >= 0; i--) {
+    //     k = -getElt(r, i, j);
+    //     addition_multiplication(r, j, i, k);
+    //     addition_multiplication(id, i, j, k);
+    //     printf("%d %d %f\n", i, j, k);
+    // }
+    // k = 1/getElt(r, j, j);
+    // multiplier_ligne(r, j, k);
+    // multiplier_ligne(id, j, k);
+
+
+    printf("\n\n\nINVERSION DE LA MATRICE AVEC ALGO DE GAUSS\n");
+    printMatrix(r);
+
+    return id;
+
 }
-
-// Matrix inversion_gauss(Matrix m) {
-
-//     unsigned int i, j;
-//     E k;
-
-//     Matrix id = matrix_identite(m->nb_rows);
-//     Matrix r = new_matrix_copy(m);
-
-//     for (i = 0; i < r->nb_rows-1; i++) {
-//         for (j = i+1; j < r->nb_rows; j++) {
-//             k = -getElt(r, j, i) / getElt(r, i, i);
-//             addition_multiplication(r, j, i, k);
-//             addition_multiplication(id, j, i, k);
-//         }
-//     }
-
-
-
-//     printf("\n\n\nINVERSION DE LA MATRICE AVEC ALGO DE GAUSS\n");
-//     printMatrix(r);
-
-
-//     for (i = 0; i < r->nb_rows-1; i++) {
-//         for (j = i+1; j < r->nb_rows; j++) {
-//             k = -getElt(r, j, i) / getElt(r, i, i);
-//             addition_multiplication(r, j, i, k);
-//             addition_multiplication(id, j, i, k);
-//         }
-//     }
-
-//     k = 1/getElt(r, r->nb_rows-1, r->nb_rows-1);
-//     multiplier_ligne(r, r->nb_rows-1, k);
-//     multiplier_ligne(id, r->nb_rows-1, k);
-
-//     // if (r->nb_rows >= 2) {
-//     //     for (j = r->nb_rows-1; (int) j >= 0; j--) {
-//     //         for (i = r->nb_rows-2; (int) i >= 0; i--) {
-//     //             k = -getElt(r, i, j);
-//     //             addition_multiplication(r, i, j, k);
-//     //             addition_multiplication(id, i, j, k);
-//     //             printf("%d %d %f\n", i, j, k);
-//     //         }
-//     //         k = 1/getElt(r, j, j);
-//     //         multiplier_ligne(r, j, k);
-//     //         multiplier_ligne(id, j, k);
-//     //     }
-//     // }
-
-//     j = r->nb_rows-1;
-//     for (i = r->nb_rows-2; (int) i >= 0; i--) {
-//         k = -getElt(r, i, j);
-//         addition_multiplication(r, i, j, k);
-//         addition_multiplication(id, i, j, k);
-//         printf("%d %d %f\n", i, j, k);
-//     }
-//     k = 1/getElt(r, j, j);
-//     multiplier_ligne(r, j, k);
-//     multiplier_ligne(id, j, k);
-//     j = r->nb_rows-2;
-//     for (i = r->nb_rows-2; (int) i >= 0; i--) {
-//         k = -getElt(r, i, j);
-//         addition_multiplication(r, j, i, k);
-//         addition_multiplication(id, i, j, k);
-//         printf("%d %d %f\n", i, j, k);
-//     }
-//     k = 1/getElt(r, j, j);
-//     multiplier_ligne(r, j, k);
-//     multiplier_ligne(id, j, k);
-
-
-//     printf("\n\n\nINVERSION DE LA MATRICE AVEC ALGO DE GAUSS\n");
-//     printMatrix(r);
-
-//     return id;
-
-// }
 
 PLU decomposition_PLU(Matrix m)
 {
@@ -502,6 +473,31 @@ PLU decomposition_PLU(Matrix m)
     M.U = U;
 
     return M;
+}
+
+void m_PLU(Matrix m) {
+    PLU p = decomposition_PLU(m);
+    printf("Matrice P :\n");
+    printMatrix(p.P);
+    printf("Matrice L :\n");
+    printMatrix(p.L);
+    printf("Matrice U :\n");
+    printMatrix(p.U);
+}
+
+Matrix m_PLU_p(Matrix m) {
+    PLU p = decomposition_PLU(m);
+    return p.P;
+}
+
+Matrix m_PLU_l(Matrix m) {
+    PLU p = decomposition_PLU(m);
+    return p.L;
+}
+
+Matrix m_PLU_u(Matrix m) {
+    PLU p = decomposition_PLU(m);
+    return p.U;
 }
 
 E * valeurs_propres(Matrix m) {

@@ -35,6 +35,8 @@ void print_expression(Expression e) {
         case CALL:
             print_error("Undefined function");
             break;
+        case NOTHING:
+            break;
         default:
             print_error("Unknown expression type");
     }
@@ -142,10 +144,70 @@ mpc_val_t* call_to_expr(int n, mpc_val_t ** xs) {
                         e->type = ERROR;
                         e->c.str = "La matrice doit être carrée !";
                     } else {
-                        e->type = MATRIX;
                         e->c.m = inversion(param->c.m);
-                        // deleteMatrix(param->c.m);
+                        if (!e->c.m) {
+                            e->type = ERROR;
+                            e->c.str = "La matrice n'est pas inversible.";
+                        } else e->type = MATRIX;
                     }
+                    deleteMatrix(param->c.m);
+                }
+            }
+
+            else if (!strcmp(name, "invg")) {
+                if (param->type == MATRIX) {
+                    if (!isSquare(param->c.m)) {
+                        e->type = ERROR;
+                        e->c.str = "La matrice doit être carrée !";
+                    } else {
+                        e->c.m = inversion_gauss(param->c.m);
+                        if (!e->c.m) {
+                            e->type = ERROR;
+                            e->c.str = "La matrice n'est pas inversible.";
+                        } else e->type = MATRIX;
+                    }
+                    deleteMatrix(param->c.m);
+                }
+            }
+
+            else if (!strcmp(name, "plu")) {
+                if (param->type == MATRIX) {
+                    m_PLU(param->c.m);
+                    e->type = NOTHING;
+                    deleteMatrix(param->c.m);
+                }
+            }
+
+            else if (!strcmp(name, "plu_p")) {
+                if (param->type == MATRIX) {
+                    e->c.m = m_PLU_p(param->c.m);
+                    if (!e->c.m) {
+                        e->type = ERROR;
+                        e->c.str = "Aucune matrice P trouvée.";
+                    } else e->type = MATRIX;
+                    deleteMatrix(param->c.m);
+                }
+            }
+
+            else if (!strcmp(name, "plu_l")) {
+                if (param->type == MATRIX) {
+                    e->c.m = m_PLU_l(param->c.m);
+                    if (!e->c.m) {
+                        e->type = ERROR;
+                        e->c.str = "Aucune matrice P trouvée.";
+                    } else e->type = MATRIX;
+                    deleteMatrix(param->c.m);
+                }
+            }
+
+            else if (!strcmp(name, "plu_u")) {
+                if (param->type == MATRIX) {
+                    e->c.m = m_PLU_u(param->c.m);
+                    if (!e->c.m) {
+                        e->type = ERROR;
+                        e->c.str = "Aucune matrice P trouvée.";
+                    } else e->type = MATRIX;
+                    deleteMatrix(param->c.m);
                 }
             }
 
@@ -233,6 +295,18 @@ mpc_val_t *fold_assign(int n, mpc_val_t ** xs) {
     (void) n;
 
     return assign;
+}
+
+mpc_val_t *fold_solve(int n, mpc_val_t ** xs) {
+    Matrix a = ((Expression) xs[0])->c.m;
+    Matrix b = ((Expression) xs[3])->c.m;
+    Expression e = new_expression();
+    e->c.m = multiplication(inversion(a), b);
+    e->type = MATRIX;
+
+    (void) n;
+
+    return e;
 }
 
 mpc_val_t *fold_mat_row_first(int n, mpc_val_t ** xs) {
@@ -401,6 +475,7 @@ void run_parser() {
     mpc_parser_t *MatRow   = mpc_new("mat-row");
     mpc_parser_t *Row      = mpc_new("row");
     mpc_parser_t *Call     = mpc_new("call");
+    mpc_parser_t *Solve    = mpc_new("solve");
 
     mpc_define(Ident, mpc_ident());
 
@@ -457,8 +532,13 @@ void run_parser() {
         mpc_parens(Expr, free)
     )));
 
+    mpc_define(Solve, mpc_and(4, fold_solve,
+        Mat, mpc_char('X'), mpc_strip(mpc_char('=')), Mat,
+        free, free, free
+    ));
+
     mpc_define(Line, mpc_strip(mpc_or(2,
-        Assign, Expr
+        Solve, Assign, Expr
     )));
 
     mpc_define(Input, mpc_whole(Line, free));
@@ -475,6 +555,7 @@ void run_parser() {
     mpc_optimise(Row);
     mpc_optimise(Mat);
     mpc_optimise(MatRow);
+    mpc_optimise(Solve);
 
 
     mpc_result_t r;
@@ -497,10 +578,6 @@ void run_parser() {
                     memcpy(new_assign->e, e->c.a->e, sizeof(struct s_expression));
                     if (e->c.a->e->type == MATRIX) {
                         new_assign->e->c.m = new_matrix_copy(e->c.a->e->c.m);
-                        // new_assign->e->c.m = newMatrix(e->c.a->e->c.m->nb_rows, e->c.a->e->c.m->nb_columns);
-                        // memcpy(new_assign->e->c.m, e->c.a->e->c.m, sizeof(struct matrix));
-                        // new_assign->e->c.m->mat = malloc((e->c.a->e->c.m->nb_rows * e->c.a->e->c.m->nb_columns * sizeof(E)));
-                        // memcpy(new_assign->e->c.m->mat, e->c.a->e->c.m->mat, (e->c.a->e->c.m->nb_rows * e->c.a->e->c.m->nb_columns * sizeof(E)));
                     }
                     new_assign->next = NULL;
                     environnement->next = new_assign;
@@ -521,7 +598,7 @@ void run_parser() {
 
     if (line) free(line);
 
-    mpc_cleanup(12, Assign, Call, Constant, Ident, Expr, Prod, Value, Line, Input, Row, Mat, MatRow);
+    mpc_cleanup(13, Assign, Call, Constant, Ident, Expr, Prod, Value, Line, Input, Row, Mat, MatRow, Solve);
 
     free_env(environnement);
 

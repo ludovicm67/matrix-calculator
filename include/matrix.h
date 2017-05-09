@@ -38,9 +38,13 @@ void permuter_ligne(Matrix m, unsigned int i, unsigned int j);
 E m_determinant(Matrix m);
 void copy_matrix(Matrix source, Matrix dest);
 void addition_multiplication(Matrix m, unsigned int i, unsigned int j, E k);
-void triangulariser(Matrix m);
+Matrix triangulariser(Matrix m);
 Matrix inversion_gauss(Matrix m);
 PLU decomposition_PLU(Matrix m);
+void m_PLU(Matrix m);
+Matrix m_PLU_p(Matrix m);
+Matrix m_PLU_l(Matrix m);
+Matrix m_PLU_u(Matrix m);
 E * valeurs_propres(Matrix m);
 
 #endif
