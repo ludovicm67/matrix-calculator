@@ -445,53 +445,63 @@ Matrix inversion_gauss(Matrix in) {
 
 // }
 
-PLU decomposition_PLU(Matrix m) {
+PLU decomposition_PLU(Matrix m)
+{
+    unsigned int i, j, k, l;
+    E p = 0, q = 0, tmp = 0;
+
+    PLU M;
     Matrix P = matrix_identite(m->nb_rows);
     Matrix L = matrix_identite(m->nb_rows);
-    Matrix U = newMatrix(m->nb_rows, m->nb_rows);
-    int i, j, k, n = m->nb_rows;
-    E l, p, temp, q;
-    PLU m2;
-    m2.P = P;
-    m2.U = U;
-    m2.L = L;
-    copy_matrix(m, m2.U);
+    Matrix U = m;
 
-    for (k = 0; k < n; k++) {
-        p = getElt(m2.U, k, k);
+    for(k = 0; k < U->nb_rows; k++)
+    {
+        p = getElt(U, k, k);
         l = k;
-        for (i = k; i < n; i++) {
-            if (abs(getElt(m2.U, i, k)) > p) {
-                p = getElt(m2.U, i, k);
+        for(i = k; i < U->nb_rows; i++)
+        {
+            if(abs(getElt(U, i, k)) > p)
+            {
+                p = getElt(U, i, k);
                 l = i;
             }
         }
-        if (l != k) {
-            for (j = 0; j < n; j++) {
-                temp = getElt(m2.U, k, j);
-                setElt(m2.U, k, j, getElt(m2.U, l, j));
-                setElt(m2.U, l, j, temp);
-                if (j < k) {
-                    temp = getElt(m2.L, k, j);
-                    setElt(m2.L, k, j, getElt(m2.L, l, j));
-                    setElt(m2.L, l, j, temp);
-                    temp = getElt(m2.P, k, j);
-                    setElt(m2.P, k, j, getElt(m2.P, l, j));
-                    setElt(m2.P, l, j, temp);
+        if(l != k)
+        {
+            for(j = 0; j < U->nb_rows; j++)
+            {
+                tmp = getElt(U, k, j);
+                setElt(U, k, j, getElt(U, l, j));
+                setElt(U, l, j, tmp);
+                if(j < k)
+                {
+                    tmp = getElt(L, k, j);
+                    setElt(L, k, j, getElt(L, l, j));
+                    setElt(L, l, j, tmp);
                 }
+                tmp = getElt(P, k, j);
+                setElt(P, k, j, getElt(P, l, j));
+                setElt(P, l, j, tmp);
             }
-            for (i = k + 2; i < n; i++){
-                q = getElt(m2.U, i, k);
-                setElt(m2.U, i, k, 0);
-                setElt(m2.L, i, k, (q/p));
-                for (j = k + 2; j < n; j++) {
-                    setElt(m2.U, i, j, getElt(m2.U, i, j) - (getElt(m2.U, k, j) * (q/p)));
-                }
+        }
+        for(i = k + 1; i < U->nb_rows; i++)
+        {
+            q = getElt(U, i, k);
+            setElt(U, i, k, 0);
+            setElt(L, i, k, (q / p));
+            for(j = k + 1; j < U->nb_rows; j++)
+            {
+                setElt(U, i, j, getElt(U, i, j) - getElt(U, k, j) * (q / p));
             }
         }
     }
 
-    return m2;
+    M.P = P;
+    M.L = L;
+    M.U = U;
+
+    return M;
 }
 
 E * valeurs_propres(Matrix m) {
