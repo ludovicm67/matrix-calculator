@@ -416,8 +416,7 @@ printMatrix(id);
 
 }
 
-PLU decomposition_PLU(Matrix m)
-{
+PLU decomposition_PLU(Matrix m) {
     unsigned int i, j, k, l;
     E p = 0, q = 0, tmp = 0;
 
@@ -426,27 +425,21 @@ PLU decomposition_PLU(Matrix m)
     Matrix L = matrix_identite(m->nb_rows);
     Matrix U = m;
 
-    for(k = 0; k < U->nb_rows; k++)
-    {
+    for(k = 0; k < U->nb_rows; k++) {
         p = getElt(U, k, k);
         l = k;
-        for(i = k; i < U->nb_rows; i++)
-        {
-            if(abs(getElt(U, i, k)) > p)
-            {
+        for(i = k; i < U->nb_rows; i++) {
+            if(abs(getElt(U, i, k)) > p) {
                 p = getElt(U, i, k);
                 l = i;
             }
         }
-        if(l != k)
-        {
-            for(j = 0; j < U->nb_rows; j++)
-            {
+        if(l != k) {
+            for(j = 0; j < U->nb_rows; j++) {
                 tmp = getElt(U, k, j);
                 setElt(U, k, j, getElt(U, l, j));
                 setElt(U, l, j, tmp);
-                if(j < k)
-                {
+                if(j < k) {
                     tmp = getElt(L, k, j);
                     setElt(L, k, j, getElt(L, l, j));
                     setElt(L, l, j, tmp);
@@ -456,13 +449,11 @@ PLU decomposition_PLU(Matrix m)
                 setElt(P, l, j, tmp);
             }
         }
-        for(i = k + 1; i < U->nb_rows; i++)
-        {
+        for(i = k + 1; i < U->nb_rows; i++) {
             q = getElt(U, i, k);
             setElt(U, i, k, 0);
             setElt(L, i, k, (q / p));
-            for(j = k + 1; j < U->nb_rows; j++)
-            {
+            for(j = k + 1; j < U->nb_rows; j++) {
                 setElt(U, i, j, getElt(U, i, j) - getElt(U, k, j) * (q / p));
             }
         }

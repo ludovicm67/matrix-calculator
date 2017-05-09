@@ -537,7 +537,7 @@ void run_parser() {
         free, free, free
     ));
 
-    mpc_define(Line, mpc_strip(mpc_or(2,
+    mpc_define(Line, mpc_strip(mpc_or(3,
         Solve, Assign, Expr
     )));
 
