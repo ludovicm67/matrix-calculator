@@ -528,9 +528,8 @@ Matrix m_PLU_u(Matrix m) {
     return p.U;
 }
 
-E * valeurs_propres(Matrix m) {
-    E* val = malloc(2*sizeof(E));
-    E b, c, delta;
+void valeurs_propres(Matrix m) {
+    E b, c, delta, val1, val2;
 
     if (!isSquare(m)) {
         fprintf(stderr, "La matrice n'est pas carrée\n");
@@ -547,14 +546,17 @@ E * valeurs_propres(Matrix m) {
         delta = b*b - 4*c;
         if (delta < 0) {
             fprintf(stderr, "Les valeurs propres ne sont pas réelles\n");
-            return NULL;
+            return;
         } else if (delta == 0) {
-            val[0] = -(b/2);
-            val[1] = val[0];
+            val1 = -(b/2);
+            val2 = val1;
         } else {
-            val[0] = (-b- sqrtf(delta))/2;
-            val[1] = (-b+ sqrtf(delta))/2;
+            val1 = (-b- sqrtf(delta))/2;
+            val2 = (-b+ sqrtf(delta))/2;
         }
     }
-    return val;
+
+    printf("Valeurs propres :\n");
+    printf("   %f\n", val1);
+    printf("   %f\n", val2);
 }

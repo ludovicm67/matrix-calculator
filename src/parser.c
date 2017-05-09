@@ -211,6 +211,19 @@ mpc_val_t* call_to_expr(int n, mpc_val_t ** xs) {
                 }
             }
 
+            else if (!strcmp(name, "val")) {
+                if (param->type == MATRIX) {
+                    if (!isSquare(param->c.m) || param->c.m->nb_rows != 2 || param->c.m->nb_columns != 2) {
+                        e->type = ERROR;
+                        e->c.str = "La matrice doit être carrée et de taille 2x2 !";
+                    } else {
+                        e->type = NOTHING;
+                        valeurs_propres(param->c.m);
+                    }
+                    deleteMatrix(param->c.m);
+                }
+            }
+
         }
 
     }

@@ -45,6 +45,6 @@ void m_PLU(Matrix m);
 Matrix m_PLU_p(Matrix m);
 Matrix m_PLU_l(Matrix m);
 Matrix m_PLU_u(Matrix m);
-E * valeurs_propres(Matrix m);
+void valeurs_propres(Matrix m);
 
 #endif
