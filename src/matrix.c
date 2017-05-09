@@ -204,8 +204,8 @@ Matrix extraction(Matrix m, unsigned int row, unsigned int column) {
         for (j = 0; j < r->nb_columns; j++) {
             x = i;
             y = j;
-            if(i >= row) x++;
-            if(j >= column) y++;
+            if (i >= row) x++;
+            if (j >= column) y++;
             setElt(r, i, j, getElt(m, x, y));
         }
     }
@@ -246,9 +246,9 @@ Matrix inversion(Matrix m) {
     for (i = 0; i < (int) m->nb_rows; i++) {
         for (j = 0; j < (int) m->nb_columns; j++) {
             if ((i + j) % 2 == 0) {
-                setElt(inverse, i, j, -det(extraction(m, i, j)));
-            } else {
                 setElt(inverse, i, j, det(extraction(m, i, j)));
+            } else {
+                setElt(inverse, i, j, -det(extraction(m, i, j)));
             }
         }
     }
