@@ -54,6 +54,7 @@ void copy_matrix(Matrix source, Matrix dest) {
     }
 }
 
+// Copie le contenu d'une matrice
 Matrix new_matrix_copy(Matrix m) {
     Matrix r = newMatrix(m->nb_rows, m->nb_columns);
     copy_matrix(m, r);
@@ -194,6 +195,7 @@ Matrix multiplication(Matrix a, Matrix b) {
     return r;
 }
 
+// Enlève une ligne et une colonne d'une matrice
 Matrix extraction(Matrix m, unsigned int row, unsigned int column) {
     if (m->nb_rows <= row || m->nb_columns <= column) return m;
 
@@ -213,6 +215,7 @@ Matrix extraction(Matrix m, unsigned int row, unsigned int column) {
     return r;
 }
 
+// déterminant avec les comatrices
 E det(Matrix m) {
     unsigned int i;
     E somme = 0;
@@ -237,6 +240,7 @@ E det(Matrix m) {
     return somme;
 }
 
+// Inversion avec les comatrices
 Matrix inversion(Matrix m) {
     int i, j;
 
@@ -274,9 +278,9 @@ void multiplier_ligne(Matrix m, unsigned int i, E k) {
 // permute les lignes i et j de la matrice m
 void permuter_ligne(Matrix m, unsigned int i, unsigned int j) {
     unsigned int k;
-    // check : si a et b < m->nb_rows
+
     if ((i < m->nb_rows) && (j < m->nb_rows)) {
-        for(k = 0; k < m->nb_columns; k++) {
+        for (k = 0; k < m->nb_columns; k++) {
             E tmp_i = getElt(m, i, k);
             E tmp_j = getElt(m, j, k);
             setElt(m, i, k, tmp_j);
@@ -300,6 +304,7 @@ void addition_multiplication(Matrix m, unsigned int i, unsigned int j, E k) {
     deleteMatrix(m2);
 }
 
+// triangularisation d'une matrice
 Matrix triangulariser(Matrix in) {
     Matrix m = new_matrix_copy(in);
 
@@ -338,83 +343,7 @@ E m_determinant(Matrix m) {
     return determinant;
 }
 
-// prec : La matrice doit être carrée
-/*Matrix inversion_gauss(Matrix m) {
-
-    unsigned int i, j;
-    E k;
-
-    if (!m_determinant(m)) return NULL;
-
-    printf("Matrice entrée :\n");
-    printMatrix(m);
-
-    Matrix id = matrix_identite(m->nb_rows);
-    Matrix r = new_matrix_copy(m);
-
-    // On commence par triangulariser la matice
-    for (i = 0; i < r->nb_rows-1; i++) {
-        for (j = i+1; j < r->nb_rows; j++) {
-            k = -getElt(r, j, i) / getElt(r, i, i);
-            addition_multiplication(r, j, i, k);
-            addition_multiplication(id, j, i, k);
-        }
-    }
-
-
-    k = 1/getElt(r, r->nb_rows-1, r->nb_rows-1);
-    multiplier_ligne(r, r->nb_rows-1, k);
-    multiplier_ligne(id, r->nb_rows-1, k);
-
-    printf("Matrice après trig :\n");
-    printMatrix(m);
-    printf("Matrice id après trig :\n");
-    printMatrix(id);
-    // addition_multiplication(r, r->nb_rows-1, r->nb_rows-1, k);
-    // addition_multiplication(id, r->nb_rows-1, r->nb_rows-1, k);
-
-    // if (r->nb_rows >= 2) {
-    //     for (j = r->nb_rows-1; (int) j >= 0; j--) {
-    //         for (i = r->nb_rows-2; (int) i >= 0; i--) {
-    //             k = -getElt(r, i, j);
-    //             addition_multiplication(r, i, j, k);
-    //             addition_multiplication(id, i, j, k);
-    //             printf("%d %d %f\n", i, j, k);
-    //         }
-    //         k = 1/getElt(r, j, j);
-    //         multiplier_ligne(r, j, k);
-    //         multiplier_ligne(id, j, k);
-    //     }
-    // }
-
-    // j = r->nb_rows-1;
-    // for (i = r->nb_rows-2; (int) i >= 0; i--) {
-    //     k = -getElt(r, i, j);
-    //     addition_multiplication(r, i, j, k);
-    //     addition_multiplication(id, i, j, k);
-    //     printf("%d %d %f\n", i, j, k);
-    // }
-    // k = 1/getElt(r, j, j);
-    // multiplier_ligne(r, j, k);
-    // multiplier_ligne(id, j, k);
-    // j = r->nb_rows-2;
-    // for (i = r->nb_rows-2; (int) i >= 0; i--) {
-    //     k = -getElt(r, i, j);
-    //     addition_multiplication(r, j, i, k);
-    //     addition_multiplication(id, i, j, k);
-    //     printf("%d %d %f\n", i, j, k);
-    // }
-    // k = 1/getElt(r, j, j);
-    // multiplier_ligne(r, j, k);
-    // multiplier_ligne(id, j, k);
-
-
-    printf("\n\n\nINVERSION DE LA MATRICE AVEC ALGO DE GAUSS\n");
-    printMatrix(r);
-
-    return id;
-}*/
-
+// inversion d'une matrice par l'algorithme de Gauss
 Matrix inversion_gauss(Matrix m) {
     unsigned int i, j, k, l, h;
     int a = 0;
@@ -423,10 +352,10 @@ Matrix inversion_gauss(Matrix m) {
     copy_matrix(m, tmp1);
     Matrix tmp2 = matrix_identite(m->nb_rows);
 
-    for(h = 0; h < m->nb_rows; h++) {
+    for (h = 0; h < m->nb_rows; h++) {
         diagonale = getElt(tmp1, h, h);
         a = 0;
-        while(abs(diagonale) < 0.0000000000000001) {
+        while (abs(diagonale) < 0.0000000000000001) { // à cause de la précision des flottants
             a++;
             for (i = 0; i < m->nb_rows; i++) {
                 setElt (tmp1, h, i, getElt(tmp1, h, i) + getElt(tmp1, h + a, i));
@@ -435,15 +364,15 @@ Matrix inversion_gauss(Matrix m) {
             diagonale = getElt(tmp1, h, h);
         }
 
-        for(j = 0; j < m->nb_rows; j++) {
+        for (j = 0; j < m->nb_rows; j++) {
             setElt(tmp1, h, j, getElt(tmp1, h, j) / diagonale);
             setElt(tmp2, h, j, getElt(tmp2, h, j) / diagonale);
         }
 
-        for(k = 0; k < m->nb_rows; k++) {
+        for (k = 0; k < m->nb_rows; k++) {
             coefficient = getElt(tmp1, k, h);
-            if(k != h) {
-                for(l = 0; l < m->nb_rows; l++) {
+            if (k != h) {
+                for (l = 0; l < m->nb_rows; l++) {
                     setElt(tmp1, k, l, getElt(tmp1, k, l) - coefficient * getElt(tmp1, h, l));
                     setElt(tmp2, k, l, getElt(tmp2, k, l) - coefficient * getElt(tmp2, h, l));
                 }
@@ -453,6 +382,7 @@ Matrix inversion_gauss(Matrix m) {
     return tmp2;
 }
 
+// Décomposition PLU
 PLU decomposition_PLU(Matrix m) {
     unsigned int i, j, k, l;
     E p = 0, q = 0, tmp = 0;
@@ -462,21 +392,21 @@ PLU decomposition_PLU(Matrix m) {
     Matrix L = matrix_identite(m->nb_rows);
     Matrix U = m;
 
-    for(k = 0; k < U->nb_rows; k++) {
+    for (k = 0; k < U->nb_rows; k++) {
         p = getElt(U, k, k);
         l = k;
-        for(i = k; i < U->nb_rows; i++) {
-            if(abs(getElt(U, i, k)) > p) {
+        for (i = k; i < U->nb_rows; i++) {
+            if (abs(getElt(U, i, k)) > p) {
                 p = getElt(U, i, k);
                 l = i;
             }
         }
-        if(l != k) {
-            for(j = 0; j < U->nb_rows; j++) {
+        if (l != k) {
+            for (j = 0; j < U->nb_rows; j++) {
                 tmp = getElt(U, k, j);
                 setElt(U, k, j, getElt(U, l, j));
                 setElt(U, l, j, tmp);
-                if(j < k) {
+                if (j < k) {
                     tmp = getElt(L, k, j);
                     setElt(L, k, j, getElt(L, l, j));
                     setElt(L, l, j, tmp);
@@ -486,11 +416,11 @@ PLU decomposition_PLU(Matrix m) {
                 setElt(P, l, j, tmp);
             }
         }
-        for(i = k + 1; i < U->nb_rows; i++) {
+        for (i = k + 1; i < U->nb_rows; i++) {
             q = getElt(U, i, k);
             setElt(U, i, k, 0);
             setElt(L, i, k, (q / p));
-            for(j = k + 1; j < U->nb_rows; j++) {
+            for (j = k + 1; j < U->nb_rows; j++) {
                 setElt(U, i, j, getElt(U, i, j) - getElt(U, k, j) * (q / p));
             }
         }
@@ -503,6 +433,7 @@ PLU decomposition_PLU(Matrix m) {
     return M;
 }
 
+// Affiche les matrices de la décomposition PLU
 void m_PLU(Matrix m) {
     PLU p = decomposition_PLU(m);
     printf("Matrice P :\n");
@@ -513,32 +444,27 @@ void m_PLU(Matrix m) {
     printMatrix(p.U);
 }
 
+// Retourne le P de PLU
 Matrix m_PLU_p(Matrix m) {
     PLU p = decomposition_PLU(m);
     return p.P;
 }
 
+// Retourne le L de PLU
 Matrix m_PLU_l(Matrix m) {
     PLU p = decomposition_PLU(m);
     return p.L;
 }
 
+// Retourne le U de PLU
 Matrix m_PLU_u(Matrix m) {
     PLU p = decomposition_PLU(m);
     return p.U;
 }
 
+// prec : matrice carrée de taille 2x2
 void valeurs_propres(Matrix m) {
     E b, c, delta, val1, val2;
-
-    if (!isSquare(m)) {
-        fprintf(stderr, "La matrice n'est pas carrée\n");
-        exit(EXIT_FAILURE);
-    }
-
-    if (m->nb_rows != 2) {
-        fprintf(stderr, "La matrice n'est pas de taille 2\n");
-    }
 
     if (m->nb_rows == 2 && m->nb_columns == 2) {
         b = -(getElt(m,0,0) + getElt(m,1,1));

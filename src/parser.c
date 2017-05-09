@@ -471,6 +471,8 @@ void run_parser() {
     environnement->e->c.s = 3.141593;
     environnement->next = NULL;
 
+    assign env_last = environnement;
+
     Expression e;
 
     int is_tty = isatty(0);
@@ -593,7 +595,8 @@ void run_parser() {
                         new_assign->e->c.m = new_matrix_copy(e->c.a->e->c.m);
                     }
                     new_assign->next = NULL;
-                    environnement->next = new_assign;
+                    env_last->next = new_assign;
+                    env_last = env_last->next;
                 }
                 print_expression(r.output);
                 free(r.output);
