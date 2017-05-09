@@ -245,14 +245,15 @@ Matrix inversion(Matrix m) {
     Matrix inverse = newMatrix(m->nb_rows, m->nb_columns);
     for (i = 0; i < (int) m->nb_rows; i++) {
         for (j = 0; j < (int) m->nb_columns; j++) {
-            if (((-1 * (j % 2)) -1 * (i % 2)) == -1) {
+            if ((i + j) % 2 == 0) {
                 setElt(inverse, i, j, -det(extraction(m, i, j)));
             } else {
                 setElt(inverse, i, j, det(extraction(m, i, j)));
             }
         }
     }
-    mult_scalar((1/det(m)), inverse);
+    inverse = transpose(inverse);
+    inverse = mult_scalar((1/det(m)), inverse);
     return inverse;
 }
 

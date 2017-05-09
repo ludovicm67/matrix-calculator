@@ -143,7 +143,7 @@ mpc_val_t* call_to_expr(int n, mpc_val_t ** xs) {
                         e->c.str = "La matrice doit être carrée !";
                     } else {
                         e->type = MATRIX;
-                        e->c.m = inversion_gauss(param->c.m);
+                        e->c.m = inversion(param->c.m);
                         // deleteMatrix(param->c.m);
                     }
                 }
