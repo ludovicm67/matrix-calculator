@@ -314,7 +314,7 @@ mpc_val_t *fold_solve(int n, mpc_val_t ** xs) {
     Matrix a = ((Expression) xs[0])->c.m;
     Matrix b = ((Expression) xs[3])->c.m;
     Expression e = new_expression();
-    e->c.m = multiplication(inversion(a), b);
+    e->c.m = multiplication(inversion_gauss(a), b);
     e->type = MATRIX;
 
     (void) n;
