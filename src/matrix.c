@@ -352,7 +352,7 @@ printMatrix(m);
     Matrix id = matrix_identite(m->nb_rows);
     Matrix r = new_matrix_copy(m);
 
-    // On commence par triangulatiser la matice
+    // On commence par triangulariser la matice
     for (i = 0; i < r->nb_rows-1; i++) {
         for (j = i+1; j < r->nb_rows; j++) {
             k = -getElt(r, j, i) / getElt(r, i, i);
@@ -363,7 +363,6 @@ printMatrix(m);
 
 
     k = 1/getElt(r, r->nb_rows-1, r->nb_rows-1);
-printf("======== %f\n", k);
     multiplier_ligne(r, r->nb_rows-1, k);
     multiplier_ligne(id, r->nb_rows-1, k);
 

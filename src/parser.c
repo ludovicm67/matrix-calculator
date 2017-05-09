@@ -297,6 +297,18 @@ mpc_val_t *fold_assign(int n, mpc_val_t ** xs) {
     return assign;
 }
 
+mpc_val_t *fold_solve(int n, mpc_val_t ** xs) {
+    Matrix a = ((Expression) xs[0])->c.m;
+    Matrix b = ((Expression) xs[3])->c.m;
+    Expression e = new_expression();
+    e->c.m = multiplication(inversion(a), b);
+    e->type = MATRIX;
+
+    (void) n;
+
+    return e;
+}
+
 mpc_val_t *fold_mat_row_first(int n, mpc_val_t ** xs) {
     (void) n;
     Expression head = (Expression) xs[0];
@@ -463,6 +475,7 @@ void run_parser() {
     mpc_parser_t *MatRow   = mpc_new("mat-row");
     mpc_parser_t *Row      = mpc_new("row");
     mpc_parser_t *Call     = mpc_new("call");
+    mpc_parser_t *Solve    = mpc_new("solve");
 
     mpc_define(Ident, mpc_ident());
 
@@ -519,8 +532,13 @@ void run_parser() {
         mpc_parens(Expr, free)
     )));
 
+    mpc_define(Solve, mpc_and(4, fold_solve,
+        Mat, mpc_char('X'), mpc_strip(mpc_char('=')), Mat,
+        free, free, free
+    ));
+
     mpc_define(Line, mpc_strip(mpc_or(2,
-        Assign, Expr
+        Solve, Assign, Expr
     )));
 
     mpc_define(Input, mpc_whole(Line, free));
@@ -537,6 +555,7 @@ void run_parser() {
     mpc_optimise(Row);
     mpc_optimise(Mat);
     mpc_optimise(MatRow);
+    mpc_optimise(Solve);
 
 
     mpc_result_t r;
@@ -559,10 +578,6 @@ void run_parser() {
                     memcpy(new_assign->e, e->c.a->e, sizeof(struct s_expression));
                     if (e->c.a->e->type == MATRIX) {
                         new_assign->e->c.m = new_matrix_copy(e->c.a->e->c.m);
-                        // new_assign->e->c.m = newMatrix(e->c.a->e->c.m->nb_rows, e->c.a->e->c.m->nb_columns);
-                        // memcpy(new_assign->e->c.m, e->c.a->e->c.m, sizeof(struct matrix));
-                        // new_assign->e->c.m->mat = malloc((e->c.a->e->c.m->nb_rows * e->c.a->e->c.m->nb_columns * sizeof(E)));
-                        // memcpy(new_assign->e->c.m->mat, e->c.a->e->c.m->mat, (e->c.a->e->c.m->nb_rows * e->c.a->e->c.m->nb_columns * sizeof(E)));
                     }
                     new_assign->next = NULL;
                     environnement->next = new_assign;
@@ -583,7 +598,7 @@ void run_parser() {
 
     if (line) free(line);
 
-    mpc_cleanup(12, Assign, Call, Constant, Ident, Expr, Prod, Value, Line, Input, Row, Mat, MatRow);
+    mpc_cleanup(13, Assign, Call, Constant, Ident, Expr, Prod, Value, Line, Input, Row, Mat, MatRow, Solve);
 
     free_env(environnement);
 
